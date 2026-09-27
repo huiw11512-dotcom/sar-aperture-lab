@@ -1,0 +1,27 @@
+import {chromium} from "playwright";
+const browser=await chromium.launch({headless:true,args:["--use-gl=angle","--use-angle=swiftshader","--enable-webgl"]});
+const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
+const errors=[];page.on("pageerror",e=>errors.push(String(e)));
+const pixel=Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wps7fQAAAAASUVORK5CYII=","base64");
+await page.route("**/*",async route=>{
+ const url=route.request().url();
+ if(url.startsWith("http://127.0.0.1:4173/"))return route.continue();
+ if(/\.(?:png|jpg|jpeg)(?:\?|$)/.test(url)||/MapServer\/tile/.test(url))return route.fulfill({status:200,contentType:"image/png",body:pixel,headers:{"access-control-allow-origin":"*"}});
+ return route.abort();
+});
+await page.goto("http://127.0.0.1:4173/",{waitUntil:"domcontentloaded"});
+await page.waitForFunction(()=>window.sarScan && document.querySelector("#modeMap [data-scan=spotlight]"),{timeout:20000});
+const get=()=>page.evaluate(()=>window.sarScan.state());
+let a=await get();if(a.mode!=="mosaic")throw Error("Default mode not mosaic");
+await page.locator("#modeMap [data-scan=spotlight]").click();a=await get();if(a.mode!=="spotlight"||a.tx!==0||a.ty!==0)throw Error("Spotlight not aimed at stationary ground target");
+await page.locator("#modeMap [data-scan=scansar]").click();await page.locator("#flightTime").evaluate(el=>{el.value="400";el.dispatchEvent(new Event("input",{bubbles:true}))});
+a=await get();if(a.mode!=="scansar"||a.index<0||a.index>2)throw Error("ScanSAR mode or sub-swath missing");
+await page.locator("#modeMap [data-scan=mosaic]").click();
+await page.locator("#flightTime").evaluate(el=>{el.value="900";el.dispatchEvent(new Event("input",{bubbles:true}))});
+a=await get();if(a.mode!=="mosaic"||a.pass!==2)throw Error("Multiple pass planner not reaching third strip");
+let overlays=await page.locator("#scanPlan").count();if(overlays!==1)throw Error("Coverage overview missing");
+await page.waitForTimeout(350);
+if(errors.length)throw Error(errors.join("\n"));
+console.log(JSON.stringify({passed:true,tests:["mosaic","spotlight target lock","ScanSAR burst selector","three-pass mosaic","coverage plan","no JS exceptions"],latest:a.mode,pass:a.pass}));
+await page.screenshot({path:"scan-smoke.png",fullPage:false});
+await browser.close();
