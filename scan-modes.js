@@ -28,7 +28,7 @@ function state(){
  else if(mode==="scansar"){index=Math.floor(sec/Math.max(.2,S.scanBurstSec))%3;targetY=(index-1)*B*.92}
  else if(mode==="cone"){const a=sec*2*PI/(3*Math.max(.2,S.scanBurstSec));targetX=ax+B*.33*Math.cos(a);targetY=B*.33*Math.sin(a)}
  const geom=S.alt*Math.tan(S.inc*PI/180);
- return {ax,ay,tx:targetX,ty:targetY,airY:geom+ay,pass,u,turn,index,T,sec,L,B,
+ return {mode,ax,ay,tx:targetX,ty:targetY,airY:geom+ay,pass,u,turn,index,T,sec,L,B,
    vx:ax/L*114,vy:-35+ay/S.swath*100,txv:targetX/L*114,tyv:targetY/S.swath*110,
    rx:mode==="spotlight"?12:mode==="cone"?9:23,ry:mode==="spotlight"?11:mode==="cone"?9:Math.max(9,54/count())};
 }
