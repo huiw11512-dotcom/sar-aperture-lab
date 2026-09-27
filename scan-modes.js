@@ -135,7 +135,7 @@ async function runPointComparison(){
  const btn=E("sarPointRun"),info=E("sarPointStatus"),out=E("sarPointResults");
  btn.disabled=true;out.replaceChildren();info.textContent="正在用相同链路参数逐个生成复数 LFM 回波、量化 ADC 和相干 BP...";
  try{
-   const modes=[["Stripmap",1,64],["Spotlight (理想回指)",3,64],["ScanSAR (1/3驻留近似)",1/3,32]];
+   const modes=[["Stripmap",1,64],["Spotlight (理想回指)",3,192],["ScanSAR (1/3驻留近似)",1/3,21]];
    for(const [label,factor,n] of modes){
      await new Promise(resolve=>setTimeout(resolve,25));
      const p={...S,pulses:n,phaseJitter:0,localDwell:.28*factor,step:S.speed*.28*factor/(n-1)};
@@ -150,7 +150,7 @@ async function runPointComparison(){
      box.append(heading,canvas,note);out.appendChild(box);
      info.textContent="已计算 "+out.children.length+" / 3 个模式点目标（统一相位基准与接收机参数）";
    }
-   info.textContent="已完成三模式标准点目标：实际复数 IQ → ADC → 匹配滤波 → BP。Spotlight 理想指向无波束衰减、ScanSAR 以1/3驻留和减少孔径样本近似；112像素成像网格不能分辨亚米主瓣，不等同真实完整模式处理。";
+   info.textContent="已完成三模式标准点目标：实际复数 IQ → ADC → 匹配滤波 → BP。Spotlight 理想指向无波束衰减、ScanSAR 以1/3驻留和减少孔径样本近似；三种模式按相近等效孔径采样率设置 64/192/21 个采样点；112像素成像网格不能分辨亚米主瓣，不等同真实完整模式处理。";
  }catch(e){info.textContent="对比计算失败："+e.message;console.error(e)}
  finally{btn.disabled=false}
 }
