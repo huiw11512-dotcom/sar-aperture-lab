@@ -1,0 +1,27 @@
+name: Scan mode smoke tests
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --check scan-modes.js
+      - run: npm install --no-save playwright
+      - run: npx playwright install --with-deps chromium
+      - run: python3 -m http.server 4173 >server.log 2>&1 &
+      - run: node tests/smoke.mjs
+      - name: Upload smoke screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-mode-smoke
+          path: scan-smoke.png
+          if-no-files-found: ignore
