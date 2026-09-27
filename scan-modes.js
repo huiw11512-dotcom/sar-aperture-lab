@@ -38,7 +38,7 @@ function strips(q=state()){
  const n=mode==="mosaic"?count():mode==="scansar"?3:1;
  for(let i=0;i<n;i++){
    let y=mode==="mosaic"?(i-(count()-1)/2)*q.B*.92:mode==="scansar"?(i-1)*q.B*.92:0;
-   let done=mode==="mosaic"?(i<q.pass?1:i===q.pass?q.u:0):q.u;
+   let done=mode==="mosaic"?(i<q.pass?1:i===q.pass?q.u:0):mode==="scansar"||mode==="cone"?0:q.u;
    a.push({x1:-q.L/2,x2:q.L/2,y1:y-q.B/2,y2:y+q.B/2,col:colors[i],done,reverse:mode==="mosaic"&&i%2,index:i});
  }
  return a;
@@ -81,7 +81,7 @@ function renderMap(){
    if(mode==="scansar"){
      let dt=Math.max(.2,S.scanBurstSec),cycles=Math.min(180,Math.ceil(q.sec/dt));
      for(let j=0;j<cycles;j++)if(j%3===a.index){let xa=-q.L/2+j*S.speed*dt,xb=Math.min(q.L/2,xa+S.speed*dt);if(xa<xb)o+='<path d="'+path([[xa,a.y1],[xb,a.y1],[xb,a.y2],[xa,a.y2]])+'" fill="'+a.col+'77"/>'}
-   }else if(mode==="spotlight"){o+='<path d="'+path([[a.x1,a.y1],[a.x2,a.y1],[a.x2,a.y2],[a.x1,a.y2]])+'" fill="'+a.col+'60"/>'}
+   }else if(mode==="cone"){const dt=Math.max(.2,S.scanBurstSec/2),steps=Math.min(200,Math.floor(q.sec/dt));for(let j=0;j<steps;j++){let tj=j*dt,px=-q.L/2+S.speed*tj,ang=tj*2*PI/(3*Math.max(.2,S.scanBurstSec)),x=px+q.B*.33*Math.cos(ang),y=q.B*.33*Math.sin(ang),c=xy(x,y);o+='<circle cx="'+c[0]+'" cy="'+c[1]+'" r="'+Math.max(2,q.B*.07*scale).toFixed(2)+'" fill="#b4a3ea22" stroke="#b5a5e088"/>'}}else if(mode==="spotlight"){o+='<path d="'+path([[a.x1,a.y1],[a.x2,a.y1],[a.x2,a.y2],[a.x1,a.y2]])+'" fill="'+a.col+'60"/>'}
    else if(a.done>0){let span=(a.x2-a.x1)*a.done,left=a.reverse?a.x2-span:a.x1,right=a.reverse?a.x2:a.x1+span;o+='<path d="'+path([[left,a.y1],[right,a.y1],[right,a.y2],[left,a.y2]])+'" fill="'+a.col+'77"/>'}
  }
  let air=xy(q.ax,q.airY),aim=xy(q.tx,q.ty);
@@ -120,7 +120,7 @@ document.querySelectorAll("[data-burst]").forEach(e=>e.onchange=()=>{S.scanBurst
 E("flightTime")?.addEventListener("input",e=>{e.stopImmediatePropagation();playing=false;t=(+e.target.value)/1000*total();draw(true)},true);
 E("playMap")?.addEventListener("click",e=>{e.stopImmediatePropagation();if(t>=total())t=0;playing=!playing;draw(true)},true);
 E("resetFlight")?.addEventListener("click",e=>{e.stopImmediatePropagation();playing=false;t=0;draw(true)},true);
-function coverage(out,quad){const q=state(),L=q.L;for(const a of strips(q)){let x1=a.x1/L*114,x2=a.x2/L*114,y1=a.y1/S.swath*110,y2=a.y2/S.swath*110;quad(out,[[x1,y1,.4],[x2,y1,.4],[x2,y2,.4],[x1,y2,.4]],[.18,.76,.88,.12]);if(a.done){let d=(x2-x1)*a.done,left=a.reverse?x2-d:x1,right=a.reverse?x2:x1+d;quad(out,[[left,y1,.6],[right,y1,.6],[right,y2,.6],[left,y2,.6]],a.index%2?[.26,.77,.63,.32]:[.96,.65,.31,.34])}}}
+function coverage(out,quad){const q=state(),L=q.L;for(const a of strips(q)){let x1=a.x1/L*114,x2=a.x2/L*114,y1=a.y1/S.swath*110,y2=a.y2/S.swath*110;quad(out,[[x1,y1,.4],[x2,y1,.4],[x2,y2,.4],[x1,y2,.4]],[.18,.76,.88,.12]);if(mode==="scansar"){let dt=Math.max(.2,S.scanBurstSec),steps=Math.min(180,Math.ceil(q.sec/dt));for(let j=0;j<steps;j++){if(j%3!==a.index)continue;let xa=-L/2+j*S.speed*dt,xb=Math.min(L/2,xa+S.speed*dt),p1=xa/L*114,p2=xb/L*114;if(xb>xa)quad(out,[[p1,y1,.65],[p2,y1,.65],[p2,y2,.65],[p1,y2,.65]],[.24,.71,.89,.36])}}if(a.done){let d=(x2-x1)*a.done,left=a.reverse?x2-d:x1,right=a.reverse?x2:x1+d;quad(out,[[left,y1,.6],[right,y1,.6],[right,y2,.6],[left,y2,.6]],a.index%2?[.26,.77,.63,.32]:[.96,.65,.31,.34])}}}
 window.sarScan={state,change,mode:()=>mode,total,coverage,play:v=>{playing=v;last=0},time:()=>t};
-controls();stats();requestAnimationFrame(function tick(){draw();requestAnimationFrame(tick)});
+E("missionControls")?.addEventListener("input",()=>stats());controls();stats();requestAnimationFrame(function tick(){draw();requestAnimationFrame(tick)});
 })();
