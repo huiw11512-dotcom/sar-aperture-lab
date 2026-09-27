@@ -1,20 +1,19 @@
 # SAR Aperture Lab
 
-可视化优先的 SAR 系统级任务仿真网页。主页为 `index.html`，不需要安装软件。
+真实地图场景 + SAR 系统级仿真工作台。网页版入口是仓库根目录的 `index.html`。
 
-## 在线发布（GitHub Pages）
+## GitHub Pages 部署
 
-打开仓库 **Settings → Pages**，在 **Build and deployment** 中选择 **Deploy from a branch**，分支选择 **main**，目录选择 **/(root)**，点击 **Save**。首次部署完成后访问：
+此仓库已配置 `.github/workflows/deploy.yml`：推送至 `main` 时自动使用 GitHub Actions 发布。请在 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**（无需选择 Branch 或 Folder）。首次构建状态请查看 [Actions](https://github.com/huiw11512-dotcom/sar-aperture-lab/actions)，完成后网站地址为：
 
 https://huiw11512-dotcom.github.io/sar-aperture-lab/
 
-## 功能
+如果工作流失败，请查看具体报错，不要把仓库设置误改为 Deploy from a branch。
 
-- 横滨港在线 Esri 卫星底图及 OpenStreetMap 街道图；底图需要联网，无法加载时明确标识替代资料。
-- 任务参数：高度、飞行速度、扫描时间、入射角、PRF、射频和信号参数；实时航迹与地面几何计算。
-- 可交互三维飞行场景、射频收发框图、逐级信号观察、链路预算。
-- 分布式散射场景的复数回波仿真、距离压缩、BP 和近似 RDA 图像对比。
+## 当前功能
 
-## 使用边界
+横滨港在线卫星底图、任务几何与航迹、扫描高度/时间/速度/PRF 参数、三维场景、射频收发架构、节点波形、链路预算、距离压缩和 BP/近似 RDA 成像。
 
-此项目是系统级仿真教学及设计原型。在线卫星底图是真实地理资料，SAR 图像是从近似散射模型产生的**仿真结果**，并非实测 SAR 影像。当前成像使用局部孔径的代表性采样点，并非把计划任务的所有 PRF 脉冲完整仿真。外部地图瓦片可用性取决于网络、提供商服务和使用许可。
+## 模型说明
+
+这是系统级仿真原型。在线卫星底图是真实地理资料，SAR 图像为从简化散射模型生成的模拟结果，并不是同一位置的实测 SAR 影像。成像引擎采用部分代表性孔径采样点，不等于完整任务计划的全部脉冲回波数据。外部底图服务需要联网与符合数据许可。
