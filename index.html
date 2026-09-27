@@ -150,7 +150,7 @@ body:has(#parameterSide.open):before{content:'';position:fixed;inset:63px 0 0;ba
 </style></head><body>
 <header class="topbar">
 <div aria-hidden="true" class="brandmark"><svg height="43" viewbox="0 0 48 48" width="43"><path d="M3 34 L25 9 L45 34" fill="none" stroke="#D6774E" stroke-linecap="square" stroke-width="2.3"></path><path d="M8 35 H42 M13 39 H37 M18 43 H32" stroke="#243747" stroke-linecap="square" stroke-width="1.8"></path><circle cx="25" cy="9" fill="#D6774E" r="3.1"></circle></svg></div>
-<div class="brand-lockup"><strong>APERTURE <em>LAB</em></strong><span>合成孔径雷达仿真工作台 <span class="version">v4.1</span></span></div>
+<div class="brand-lockup"><strong>APERTURE <em>LAB</em></strong><span>合成孔径雷达仿真工作台 <span class="version">v4.2</span></span></div>
 <nav aria-label="工作区导航" class="nav"><a href="#geospatial">真实地图</a><a href="#imaging">SAR 成像</a><a href="#environment">3D 场景</a><a href="#rf">收发机</a><a href="#budget">链路预算</a></nav>
 <div class="top-actions"><span class="device-pill"><span class="state-dot"></span>浏览器仿真</span><button aria-controls="parameterSide" aria-expanded="false" class="btn mobile-control" id="mobileControl" type="button">系统参数</button><button class="btn top-run" id="topRun" type="button">运行仿真 <span aria-hidden="true">↗</span></button></div>
 </header>
@@ -437,4 +437,4 @@ recompute();renderMap();extractROI();
 (function(){document.addEventListener('keydown',e=>{if(e.key==='Escape'){let s=document.getElementById('parameterSide'),c=document.getElementById('mobileControl');if(s?.classList.contains('open')){s.classList.remove('open');c?.setAttribute('aria-expanded','false');if(c)c.textContent='系统参数'}}});
 // Clicking navigation shouldn't leave parameter overlay open.
 document.querySelectorAll('nav.nav a').forEach(a=>a.addEventListener('click',()=>{let s=document.getElementById('parameterSide'),c=document.getElementById('mobileControl');s?.classList.remove('open');c?.setAttribute('aria-expanded','false')}));
-})();</script><script>/* No unregistered generic fallback image; preserve clear data-unavailable notice. */</script><script defer src="./scan-modes.js?v=4_1"></script></body></html>
+})();</script><script>/* No unregistered generic fallback image; preserve clear data-unavailable notice. */</script><script defer src="./scan-modes.js?v=4_2"></script></body></html>
