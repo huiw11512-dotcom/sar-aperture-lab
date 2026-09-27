@@ -45,13 +45,13 @@ function strips(q=state()){
 }
 const style=document.createElement("style");
 style.textContent=".scan-modes{display:flex;flex-wrap:wrap;align-items:center;gap:7px;background:#eef5f5;border:1px solid #d5e2e3;padding:10px;margin:8px 0 12px;border-radius:5px}.scan-modes b{font:700 12px system-ui;color:#284c59}.scan-modes button{border:1px solid #bed1d7;color:#345c69;background:white;border-radius:4px;padding:7px 9px;cursor:pointer;font:700 11px system-ui}.scan-modes button[aria-pressed=true]{background:#26566a;border-color:#26566a;color:white}.scan-modes .description{width:100%;font:11px/1.6 system-ui;color:#526b73}.scan-modes .extra{font:11px system-ui;display:flex;gap:13px;flex-wrap:wrap}.scan-modes .extra input{width:48px;border:1px solid #c5d5d8;padding:5px;border-radius:4px}.sar-new-map{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}.geo-map #mapOverlay>path:first-of-type,.geo-map #mapOverlay>path:nth-of-type(4),.geo-map #mapOverlay>path:nth-of-type(5),.geo-map #mapOverlay>g{display:none}.sar-plan{position:absolute;right:9px;bottom:9px;z-index:4;background:#0b2130ef;border:1px solid #65828e;border-radius:4px;width:270px!important;height:165px!important;pointer-events:none}.sar-mode-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:11px}.sar-mode-stats>div{padding:8px;border:1px solid #dce6e8;border-radius:4px}.sar-mode-stats small{font-size:10px;color:#5e7a82;display:block}.sar-mode-stats strong{display:block;font-size:15px;color:#274c58}.sar-mode-warning{font:11px/1.6 system-ui;color:#5c7780;margin:9px 0}@media(max-width:800px){.sar-mode-stats{grid-template-columns:repeat(2,1fr)}.sar-plan{width:38%!important;height:120px!important}}";
-style.textContent+=".sar-psf{margin:12px 0;padding:12px;border:1px solid #dce6e8;border-radius:4px;background:#f8fbfc}.sar-psf strong{font:700 12px system-ui;color:#284b58;display:block;margin-bottom:7px}.sar-psf canvas{display:block;width:100%;height:auto;max-height:180px}.sar-psf small{font:10px/1.5 system-ui;color:#63808a}";document.head.appendChild(style);
+style.textContent+=".sar-psf{margin:12px 0;padding:12px;border:1px solid #dce6e8;border-radius:4px;background:#f8fbfc}.sar-psf strong{font:700 12px system-ui;color:#284b58;display:block;margin-bottom:7px}.sar-psf canvas{display:block;width:100%;height:auto;max-height:180px}.sar-psf small{font:10px/1.5 system-ui;color:#63808a}";style.textContent+=".sar-point{border:1px solid #d7e4e8;padding:10px;margin:9px 0;background:#f9fbfb}.sar-point button{border:0;background:#2b6877;color:#fff;padding:9px 14px;font:700 12px system-ui;cursor:pointer;border-radius:3px}.sar-point button:disabled{opacity:.6}.sar-point>span{display:block;font-size:10px;color:#597582;line-height:1.5;padding:8px 0}.sar-point-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.sar-point-grid>div{border:1px solid #dbe5e7;padding:7px}.sar-point-grid strong,.sar-point-grid small{display:block;font-size:11px;color:#375863}.sar-point-grid small{font-size:10px}.sar-point-grid canvas{width:100%;aspect-ratio:1/1;image-rendering:pixelated}@media(max-width:570px){.sar-point-grid{grid-template-columns:1fr 1fr}}";document.head.appendChild(style);
 const html=id=>'<div class="scan-modes" id="'+id+'"><b>扫描模式</b>'+Object.keys(labels).map(k=>'<button data-scan="'+k+'" aria-pressed="'+(k===mode)+'">'+labels[k]+'</button>').join('')+'<span class="description"></span><div class="extra"><label data-only="mosaic">航线数 <input data-count type="number" min="2" max="6" value="3"></label><label data-only="mosaic">转弯秒数 <input data-turn type="number" min="0" max="60" value="12"></label><label data-only="scansar cone">突发周期(s) <input data-burst type="number" min=".2" max="4" step=".2" value=".8"></label></div></div>';
 const geo=E("geospatial"),three=E("environment").querySelector(".panel");
 geo.querySelector(".geogrid").insertAdjacentHTML("beforebegin",html("modeMap"));
 three.querySelector(".sceneWrap").insertAdjacentHTML("beforebegin",html("mode3D"));
 three.querySelector(".sceneWrap").insertAdjacentHTML("beforeend",'<canvas id="scanPlan" class="sar-plan" width="270" height="165" aria-label="各条带采集进度俯视图"></canvas>');
-three.querySelector(".sceneFoot").insertAdjacentHTML("afterend",'<div id="scanStats" class="sar-mode-stats"></div><p id="scanModeNote" class="sar-mode-warning"></p><div class="sar-psf"><strong>理想点目标方位响应对比 / PSF</strong><canvas id="scanPsf" width="690" height="180" aria-label="Stripmap、Spotlight 和 ScanSAR 的理论方位点扩散函数"></canvas><small>同一高度和载频下的孔径驻留时间趋势比较。不是已运行的多模式点目标成像实验。</small></div>');
+three.querySelector(".sceneFoot").insertAdjacentHTML("afterend",'<div id="scanStats" class="sar-mode-stats"></div><p id="scanModeNote" class="sar-mode-warning"></p><div class="sar-psf"><strong>理想点目标方位响应对比 / PSF</strong><canvas id="scanPsf" width="690" height="180" aria-label="Stripmap、Spotlight 和 ScanSAR 的理论方位点扩散函数"></canvas><small>同一高度和载频下的孔径驻留时间趋势比较；下方按钮另有同一接收机参数的实际复数 IQ 点目标仿真。</small></div><div class="sar-point"><button id="sarPointRun" type="button">运行三模式统一点目标 IQ → BP 对比</button><span id="sarPointStatus">仅为局部标准点目标的孔径差异验证，不是 3km 港区的全模式 SAR 成像。</span><div id="sarPointResults" class="sar-point-grid"></div></div>');
 const map=E("mapPort"),newSvg=document.createElementNS("http://www.w3.org/2000/svg","svg");
 newSvg.setAttribute("class","sar-new-map");newSvg.setAttribute("aria-label","实时多条带与波束覆盖地图");map.appendChild(newSvg);
 function controls(){
@@ -131,6 +131,31 @@ E("flightTime")?.addEventListener("input",e=>{e.stopImmediatePropagation();playi
 E("playMap")?.addEventListener("click",e=>{e.stopImmediatePropagation();if(t>=total())t=0;playing=!playing;draw(true)},true);
 E("resetFlight")?.addEventListener("click",e=>{e.stopImmediatePropagation();playing=false;t=0;draw(true)},true);
 function coverage(out,quad){const q=state(),L=q.L;for(const a of strips(q)){let x1=a.x1/L*114,x2=a.x2/L*114,y1=a.y1/S.swath*110,y2=a.y2/S.swath*110;quad(out,[[x1,y1,.4],[x2,y1,.4],[x2,y2,.4],[x1,y2,.4]],[.18,.76,.88,.12]);if(mode==="scansar"){let dt=Math.max(.2,S.scanBurstSec),steps=Math.min(180,Math.ceil(q.sec/dt));for(let j=0;j<steps;j++){if(j%3!==a.index)continue;let xa=-L/2+j*S.speed*dt,xb=Math.min(L/2,xa+S.speed*dt),p1=xa/L*114,p2=xb/L*114;if(xb>xa)quad(out,[[p1,y1,.65],[p2,y1,.65],[p2,y2,.65],[p1,y2,.65]],[.24,.71,.89,.36])}}if(a.done){let d=(x2-x1)*a.done,left=a.reverse?x2-d:x1,right=a.reverse?x2:x1+d;quad(out,[[left,y1,.6],[right,y1,.6],[right,y2,.6],[left,y2,.6]],a.index%2?[.26,.77,.63,.32]:[.96,.65,.31,.34])}}}
+async function runPointComparison(){
+ const btn=E("sarPointRun"),info=E("sarPointStatus"),out=E("sarPointResults");
+ btn.disabled=true;out.replaceChildren();info.textContent="正在用相同链路参数逐个生成复数 LFM 回波、量化 ADC 和相干 BP...";
+ try{
+   const modes=[["Stripmap",1,64],["Spotlight (理想回指)",3,64],["ScanSAR (1/3驻留近似)",1/3,32]];
+   for(const [label,factor,n] of modes){
+     await new Promise(resolve=>setTimeout(resolve,25));
+     const p={...S,pulses:n,phaseJitter:0,localDwell:.28*factor,step:S.speed*.28*factor/(n-1)};
+     const q=calc(p),point={x:0,y:q.y,rcs:1000,phase:0};
+     const data=simulate(localCanvas,p,()=>{},[point]),peak=Math.max(...data.bp),canvas=document.createElement("canvas");
+     canvas.width=data.NX;canvas.height=data.NY;
+     const ctx=canvas.getContext("2d"),im=ctx.createImageData(data.NX,data.NY);
+     for(let j=0;j<data.bp.length;j++){const d=20*Math.log10(Math.max(1e-30,data.bp[j])/Math.max(peak,1e-30)),pix=Math.round(255*Math.max(0,Math.min(1,(d+38)/38))**.86),k=j*4;im.data[k]=im.data[k+1]=im.data[k+2]=pix;im.data[k+3]=255}
+     ctx.putImageData(im,0,0);
+     const box=document.createElement("div"),heading=document.createElement("strong"),note=document.createElement("small");
+     heading.textContent=label;note.textContent="驻留 "+p.localDwell.toFixed(2)+"s · "+n+" 孔径样本 · 像素约0.95m";
+     box.append(heading,canvas,note);out.appendChild(box);
+     info.textContent="已计算 "+out.children.length+" / 3 个模式点目标（统一相位基准与接收机参数）";
+   }
+   info.textContent="已完成三模式标准点目标：实际复数 IQ → ADC → 匹配滤波 → BP。Spotlight 理想指向无波束衰减、ScanSAR 以1/3驻留和减少孔径样本近似；112像素成像网格不能分辨亚米主瓣，不等同真实完整模式处理。";
+ }catch(e){info.textContent="对比计算失败："+e.message;console.error(e)}
+ finally{btn.disabled=false}
+}
+E("sarPointRun").addEventListener("click",runPointComparison);
+
 window.sarScan={state,change,mode:()=>mode,total,coverage,play:v=>{playing=v;last=0},time:()=>t};
 E("missionControls")?.addEventListener("input",()=>stats());controls();stats();requestAnimationFrame(function tick(){draw();requestAnimationFrame(tick)});
 })();
