@@ -45,13 +45,13 @@ function strips(q=state()){
 }
 const style=document.createElement("style");
 style.textContent=".scan-modes{display:flex;flex-wrap:wrap;align-items:center;gap:7px;background:#eef5f5;border:1px solid #d5e2e3;padding:10px;margin:8px 0 12px;border-radius:5px}.scan-modes b{font:700 12px system-ui;color:#284c59}.scan-modes button{border:1px solid #bed1d7;color:#345c69;background:white;border-radius:4px;padding:7px 9px;cursor:pointer;font:700 11px system-ui}.scan-modes button[aria-pressed=true]{background:#26566a;border-color:#26566a;color:white}.scan-modes .description{width:100%;font:11px/1.6 system-ui;color:#526b73}.scan-modes .extra{font:11px system-ui;display:flex;gap:13px;flex-wrap:wrap}.scan-modes .extra input{width:48px;border:1px solid #c5d5d8;padding:5px;border-radius:4px}.sar-new-map{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}.geo-map #mapOverlay>path:first-of-type,.geo-map #mapOverlay>path:nth-of-type(4),.geo-map #mapOverlay>path:nth-of-type(5),.geo-map #mapOverlay>g{display:none}.sar-plan{position:absolute;right:9px;bottom:9px;z-index:4;background:#0b2130ef;border:1px solid #65828e;border-radius:4px;width:270px!important;height:165px!important;pointer-events:none}.sar-mode-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:11px}.sar-mode-stats>div{padding:8px;border:1px solid #dce6e8;border-radius:4px}.sar-mode-stats small{font-size:10px;color:#5e7a82;display:block}.sar-mode-stats strong{display:block;font-size:15px;color:#274c58}.sar-mode-warning{font:11px/1.6 system-ui;color:#5c7780;margin:9px 0}@media(max-width:800px){.sar-mode-stats{grid-template-columns:repeat(2,1fr)}.sar-plan{width:38%!important;height:120px!important}}";
-document.head.appendChild(style);
+style.textContent+=".sar-psf{margin:12px 0;padding:12px;border:1px solid #dce6e8;border-radius:4px;background:#f8fbfc}.sar-psf strong{font:700 12px system-ui;color:#284b58;display:block;margin-bottom:7px}.sar-psf canvas{display:block;width:100%;height:auto;max-height:180px}.sar-psf small{font:10px/1.5 system-ui;color:#63808a}";document.head.appendChild(style);
 const html=id=>'<div class="scan-modes" id="'+id+'"><b>扫描模式</b>'+Object.keys(labels).map(k=>'<button data-scan="'+k+'" aria-pressed="'+(k===mode)+'">'+labels[k]+'</button>').join('')+'<span class="description"></span><div class="extra"><label data-only="mosaic">航线数 <input data-count type="number" min="2" max="6" value="3"></label><label data-only="mosaic">转弯秒数 <input data-turn type="number" min="0" max="60" value="12"></label><label data-only="scansar cone">突发周期(s) <input data-burst type="number" min=".2" max="4" step=".2" value=".8"></label></div></div>';
 const geo=E("geospatial"),three=E("environment").querySelector(".panel");
 geo.querySelector(".geogrid").insertAdjacentHTML("beforebegin",html("modeMap"));
 three.querySelector(".sceneWrap").insertAdjacentHTML("beforebegin",html("mode3D"));
 three.querySelector(".sceneWrap").insertAdjacentHTML("beforeend",'<canvas id="scanPlan" class="sar-plan" width="270" height="165" aria-label="各条带采集进度俯视图"></canvas>');
-three.querySelector(".sceneFoot").insertAdjacentHTML("afterend",'<div id="scanStats" class="sar-mode-stats"></div><p id="scanModeNote" class="sar-mode-warning"></p>');
+three.querySelector(".sceneFoot").insertAdjacentHTML("afterend",'<div id="scanStats" class="sar-mode-stats"></div><p id="scanModeNote" class="sar-mode-warning"></p><div class="sar-psf"><strong>理想点目标方位响应对比 / PSF</strong><canvas id="scanPsf" width="690" height="180" aria-label="Stripmap、Spotlight 和 ScanSAR 的理论方位点扩散函数"></canvas><small>同一高度和载频下的孔径驻留时间趋势比较。不是已运行的多模式点目标成像实验。</small></div>');
 const map=E("mapPort"),newSvg=document.createElementNS("http://www.w3.org/2000/svg","svg");
 newSvg.setAttribute("class","sar-new-map");newSvg.setAttribute("aria-label","实时多条带与波束覆盖地图");map.appendChild(newSvg);
 function controls(){
@@ -63,12 +63,22 @@ function controls(){
  document.querySelectorAll("[data-burst]").forEach(n=>n.value=S.scanBurstSec);
  const lab=document.querySelector('label[for="mission_duration"] span');if(lab)lab.textContent=mode==="mosaic"?"每条航线扫描时间":"扫描时间";
 }
+function drawPsf(){
+ const c=E("scanPsf"),ctx=c.getContext("2d"),W=690,H=180,R=S.alt/Math.cos(S.inc*PI/180),lam=299792458/(S.fc*1e9),dwell=Math.min(.28,S.duration),base=lam*R/(2*S.speed*dwell);
+ ctx.fillStyle="#f8fbfc";ctx.fillRect(0,0,W,H);const left=48,right=675,top=25,bottom=140;
+ ctx.strokeStyle="#dee6e9";ctx.fillStyle="#627b84";ctx.font="11px system-ui";ctx.lineWidth=1;
+ for(let y=0;y<=4;y++){let yy=top+(bottom-top)*y/4;ctx.beginPath();ctx.moveTo(left,yy);ctx.lineTo(right,yy);ctx.stroke();ctx.fillText((y*-10)+" dB",5,yy+4)}
+ const xmax=Math.max(5,base*4);for(let x=-4;x<=4;x++){let xx=left+(x+4)/8*(right-left);ctx.beginPath();ctx.moveTo(xx,top);ctx.lineTo(xx,bottom);ctx.stroke();ctx.fillText((x*xmax/4).toFixed(1),xx-11,bottom+14)}
+ let cases=[["Stripmap",base,"#e49547"],["Spotlight",base/3,"#c8a031"],["ScanSAR",base*3,"#398eae"]];
+ for(let j=0;j<cases.length;j++){let label=cases[j][0],res=cases[j][1],color=cases[j][2];ctx.beginPath();for(let k=0;k<=450;k++){let x=-xmax+2*xmax*k/450,z=PI*x/res,a=Math.abs(z)<1e-10?1:Math.abs(Math.sin(z)/z),d=Math.max(-40,20*Math.log10(Math.max(1e-9,a))),px=left+(right-left)*k/450,py=top+(-d)/40*(bottom-top);k?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.lineWidth=2;ctx.strokeStyle=color;ctx.stroke();ctx.fillStyle=color;ctx.font="700 11px system-ui";ctx.fillText(label+": "+res.toFixed(2)+"m",left+10+j*205,14)}
+ ctx.fillStyle="#637e88";ctx.fillText("方位相对中心位置 / m",275,171);
+}
 function stats(){
  const q=state(),actualTime=(mode==="mosaic"?count():1)*S.duration,groundWidth=mode==="mosaic"?band()*count()*.92:mode==="scansar"?S.swath:mode==="spotlight"?Math.min(band()*.7,580):band(),area=(mode==="spotlight"?PI*groundWidth*groundWidth/4:len()*groundWidth)/1e6;
  const dwell=Math.min(.28,S.duration)*(mode==="spotlight"?3:mode==="scansar"?1/3:mode==="cone"?0:1);
  const resolution=dwell?(299792458/(S.fc*1e9))*(S.alt/Math.cos(S.inc*PI/180))/(2*S.speed*dwell):0;
  E("scanStats").innerHTML='<div><small>任务总时长 / 含转弯</small><strong>'+q.T.toFixed(0)+' s</strong></div><div><small>覆盖面积估算</small><strong>'+area.toFixed(2)+' km²</strong></div><div><small>有效发射脉冲计划</small><strong>'+Math.round(S.prf*actualTime).toLocaleString()+'</strong></div><div><small>理论方位分辨率趋势</small><strong>'+(dwell?resolution.toFixed(2)+' m':'不适用')+'</strong></div>';
- E("scanModeNote").textContent=desc[mode]+" 覆盖与分辨率是按目标幅宽约三分之一的单条波束和理想等效孔径作的规划估计。右侧大范围图仍为光学散射代理，106m 局部 BP 仍是独立固定基线，并非按本模式生成的实测成像结果。";
+ E("scanModeNote").textContent=desc[mode]+" 覆盖与分辨率是按目标幅宽约三分之一的单条波束和理想等效孔径作的规划估计。右侧大范围图仍为光学散射代理，106m 局部 BP 仍是独立固定基线，并非按本模式生成的实测成像结果。";drawPsf();
 }
 function renderMap(){
  const p=E("mapOverlay").querySelectorAll(":scope > path")[1];if(!p)return;
