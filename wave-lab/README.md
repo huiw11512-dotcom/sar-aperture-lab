@@ -1,31 +1,23 @@
-# Wave Lab · 波场实验室
+# Wave Lab — 低功率矢量电磁场演示（SI 单位）
 
-在线入口：https://huiw11512-dotcom.github.io/sar-aperture-lab/wave-lab/
+在线地址：https://huiw11512-dotcom.github.io/sar-aperture-lab/wave-lab/
 
-## 2026-10 界面与模型修订
+本目录独立于 SAR 主程序，可以单独使用；无需后端。
 
-- 浅色科研工作台；正文与网页科研图保持白底、清晰坐标轴与统一色阶。
-- 工作频率：GHz；截面高度、长和宽：m；每个节点地面位置 (x,y)：m。
-- 口径尺寸：a/λ、b/λ；显示对应米制物理尺寸；口面效率为单独参数。
-- **仅一种**方向图：理想均匀照明矩形口径，复场方向图 `sinc(π a u/λ) sinc(π b v/λ)`。
-- 球面传播相位 `k r` + 自定义源相位；不使用整个分布式阵列的平面波近似。
-- 瞬时有符号电场、瞬时 E²、整周期平均 E²（均为归一化标量场）；点击场图查看定点周期波形。
-- 网格可选 256–640；粗采样时警告可能丢失干涉条纹。
-- 导出论文风格组合 PNG（3240px 宽，另以 1000×1000 网格重新计算），以及每个网格点的 CSV 数据。
+## 新版
+- 每个节点独立输入 x、y（m），初始相位（°），参考功率 P（W，默认 1 W，限制 0–1 W）。
+- 观察点两个时域图：一图同时显示合成 Eₓ(t)（V/m）与瞬时 S_z(t)（W/cm²），左右独立纵轴；另一图显示各节点到达观察点的 Eₓ,n(t) 及合成曲线，显示各节点到达相位差。
+- 平面场：瞬时 Eₓ(t)（V/m），瞬时 S_z(t)（W/cm²），周期平均 ⟨S_z⟩（W/cm²）。
+- PNG 论文图会独立按900×900重算，输出3240像素宽组合图；CSV导出每像素 SI 单位数据。
 
-## 物理假设
+## 物理模型
+- 10 GHz 默认频点；矩形均匀口径法向 +z，口径 a×b 以波长为单位，口面效率 η_ap 进入近似峰值增益 G0=4π η_ap ab / λ²。
+- 默认假设 **辐射效率100%**（每路输入 P 视为接受的辐射参考功率）；远场方向图使用 sinc(π a u / λ) sinc(π b v / λ)，场幅度用 √(2Z0PG0/(4πR²)) 量纲换算。
+- 采用每个源到观测点的球面路径相位；各路 E 矢量限制为垂直于各自传播方向，H=k̂×E/Z0。首先叠加 E、H，再计算 S_z(t)=[E(t)×H(t)]_z 以及 ⟨S_z⟩ = 0.5 Re[(E×H*)_z]。
+- **限制**：各单天线观察距离必须满足单口径远场条件；这不是全波有限口径近场积分、真实方向图测量、环境反射模型或高功率定向照射预测工具。网页不会优化相位或跟踪非合作目标。
 
-1. 每个口径使用远场矩形孔径方向图。**虽然整体分布式阵列可处于近场，各单元口径仍需符合自身的远场条件**。
-2. 波源从地面 `z=0` 传播到水平截面 `z=H`，口径法线固定 +z；节点坐标为手动输入的地面位置。
-3. 相量按 `sqrt(η) × w_n × sinc(π a u_n/λ) × sinc(π b v_n/λ) × H/r_n × exp(j(k r_n + φ_n))/N` 叠加。
-4. 归一化参考为 `N` 路单位轴向场；`<E²> = |Ẽ|²/2`。所有结果均为无量纲相对场，不是绝对功率密度。
-5. 不包括矢量极化、单口径近场积分、互耦、环境反射、真实目标散射、非合作目标闭环控制或高功率系统预算。
+## 数值与浏览器验证
+已在 Chromium 运行验证，无 JavaScript 异常。保留单一节点时输入功率从1 W降至0.25 W，平均能流比值约0.25；共同相位旋转不影响时间平均能流；单路90°相位变动可在到达相位曲线上复核。CSV与PNG下载均已测试。
 
 ## 部署
-
-网站由父仓库 `.github/workflows/deploy.yml` 自动发布。请于 GitHub → Settings → Pages 中使用 **GitHub Actions** 部署源；父仓库的 SAR 系统页面不受影响。
-
-## 参考设计规范
-
-- Anthropic's frontend-design skill: https://github.com/anthropics/claude-code/blob/main/plugins/frontend-design/skills/frontend-design/SKILL.md
-- K-Dense scientific-visualization: https://github.com/K-Dense-AI/scientific-agent-skills/blob/main/skills/scientific-visualization/SKILL.md
+沿用父仓库 GitHub Pages 工作流，若需首次启用，请在 Settings→Pages→Build and deployment→Source 选择 GitHub Actions。
