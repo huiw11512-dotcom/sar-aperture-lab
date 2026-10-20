@@ -48,10 +48,10 @@
         <div class="control"><label for="count">节点数</label><select id="count"><option>2</option><option>3</option><option selected>4</option><option>6</option><option>8</option></select></div>
         <div class="control"><label>相位处理</label><div class="buttonrow"><button class="button" id="equal">同相</button><button class="button" id="random">随机</button></div></div>
       </div>
-      <p class="minor">节点位置用地面坐标 x、y（米）输入。相位表示独立源的初始相位；功率为单路输入参考值，范围0–1 W。</p>
+      <p class="minor">节点位置用地面坐标 x、y（米）输入。相位表示独立源的初始相位；功率为单路输入参考值，范围0–10 W（默认1 W）。</p>
       <div id="nodes" class="nodetable"></div>
     </section>
-    <div class="foot-side">Wave Lab / 物理可视化实验<br>单频、均匀口径、远场单元方向图。<br>功率输入上限为1 W/节点；非全波与非目标系统模型。</div>
+    <div class="foot-side">Wave Lab / 物理可视化实验<br>单频、均匀口径、远场单元方向图。<br>功率输入上限为10 W/节点；非全波与非目标系统模型。</div>
   </aside>
   <main class="main">
     <header class="top"><div><div class="eyebrow">WAVE PROPAGATION / INTERFERENCE</div><h1>空间干涉场分析</h1><p>矩形口径方向图 · 球面传播路径 · 单周期电磁场与法向能流</p></div><div class="actions"><span class="status" id="status">就绪</span><button class="button" id="csv">CSV 数据</button><button class="button primary" id="png">论文图 PNG</button></div></header>
@@ -79,8 +79,8 @@ const sci=(v,unit='',digits=2)=>`${Math.abs(v)<1e-15?'0':(Math.abs(v)<.0001||Mat
 const nodeColors=['#16728C','#D36F42','#8062AF','#289B78','#C24C74','#9C7A32','#516EA4','#4A9184'];
 const radians=d=>d*Math.PI/180;
 function layout(k){const old=state.nodes,columns=Math.ceil(Math.sqrt(k)),rows=Math.ceil(k/columns);return Array.from({length:k},(_,i)=>{const x=(i%columns-(columns-1)/2)*6,y=(Math.floor(i/columns)-(rows-1)/2)*6;return old[i]??{x,y,phase:0,power:1}})}
-function renderNodes(){const parent=$('nodes');parent.replaceChildren();state.nodes.forEach((nd,i)=>{const wrap=document.createElement('div');wrap.className='node';wrap.innerHTML=`<div class="node-title"><i style="background:${nodeColors[i%nodeColors.length]}"></i>节点 ${i+1}</div><div class="node-grid">${[['x','x / m',.1],['y','y / m',.1],['phase','φ / °',1],['power','P / W',.01]].map(([key,lab,step])=>`<div><label for="nd${i}${key}">${lab}</label><input id="nd${i}${key}" type="number" value="${nd[key]}" step="${step}" ${key==='power'?'min="0" max="1"':key==='phase'?'min="-360" max="360"':''}></div>`).join('')}</div>`;parent.appendChild(wrap);
-for(const key of ['x','y','phase','power']){$(`nd${i}${key}`).addEventListener('change',e=>{let v=Number(e.target.value);if(!Number.isFinite(v))return;if(key==='power')v=clamp(v,0,1);if(key==='phase')v=clamp(v,-360,360);nd[key]=v;e.target.value=v;queue()});}})}
+function renderNodes(){const parent=$('nodes');parent.replaceChildren();state.nodes.forEach((nd,i)=>{const wrap=document.createElement('div');wrap.className='node';wrap.innerHTML=`<div class="node-title"><i style="background:${nodeColors[i%nodeColors.length]}"></i>节点 ${i+1}</div><div class="node-grid">${[['x','x / m',.1],['y','y / m',.1],['phase','φ / °',1],['power','P / W','any']].map(([key,lab,step])=>`<div><label for="nd${i}${key}">${lab}</label><input id="nd${i}${key}" type="number" value="${nd[key]}" step="${step}" ${key==='power'?'min="0" max="10"':key==='phase'?'min="-360" max="360"':''}></div>`).join('')}</div>`;parent.appendChild(wrap);
+for(const key of ['x','y','phase','power']){$(`nd${i}${key}`).addEventListener('change',e=>{let v=Number(e.target.value);if(!Number.isFinite(v))return;if(key==='power')v=clamp(v,0,10);if(key==='phase')v=clamp(v,-360,360);nd[key]=v;e.target.value=v;queue()});}})}
 state.nodes=layout(4);renderNodes();
 function syncControls(){const ids=[['freq','freq',.2,100],['height','H',1,1e4],['spanX','Lx',.03,500],['spanY','Ly',.03,500],['apX','apX',.5,30],['apY','apY',.5,30],['eta','eta',.01,1]];
 for(const [id,k,lo,hi] of ids){$(id).addEventListener('change',e=>{let v=Number(e.target.value);if(!Number.isFinite(v))v=state[k];v=clamp(v,lo,hi);state[k]=v;e.target.value=v;queue()})}
@@ -102,7 +102,7 @@ syncControls();
 function addSource(acc,x,y,nd,k,lam){if(!(nd.power>0))return;
 const vx=x-nd.x,vy=y-nd.y,r=Math.hypot(vx,vy,state.H),dx=vx/r,dy=vy/r,dz=state.H/r;
 const pat=sinc(Math.PI*state.apX*dx)*sinc(Math.PI*state.apY*dy);
-// 1 W upper limit per source, allowing low-power reference-field visualization only.
+// 10 W upper limit per source, allowing low-power reference-field visualization only.
 const G0=4*Math.PI*state.eta*state.apX*state.apY;
 const eAmp=Math.sqrt(2*Z0*nd.power*G0/(4*Math.PI*r*r))*pat;
 const den=Math.sqrt(Math.max(1e-16,1-dx*dx));
@@ -180,7 +180,7 @@ function dl(blob,name){const u=URL.createObjectURL(blob),a=document.createElemen
 async function exportPNG(){if(!state.data)return;const btn=$('png');btn.disabled=true;btn.textContent='生成中…';await new Promise(r=>setTimeout(r,25));const orig={data:state.data,peakEx:state.peakEx,peakFlux:state.peakFlux};
 try{const high=computeData(900);state.data=high;let pkE=0,pkS=0;for(let i=0;i<high.n**2;i++){pkE=Math.max(pkE,Math.hypot(high.fields.erx[i],high.fields.eix[i]));pkS=Math.max(pkS,high.fields.szAvg[i])}state.peakEx=Math.max(1e-10,pkE);state.peakFlux=Math.max(1e-15,pkS*2);
 const W=3240,H=1400,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,H);g.fillStyle='#1e2b38';g.font='bold 42px Arial';g.fillText('Spatial interference: electric field and normal power flux',60,70);g.font='24px Arial';g.fillStyle='#586c7a';g.fillText(`f = ${state.freq} GHz     z = ${state.H} m     aperture = ${state.apX}λ × ${state.apY}λ     N = ${state.N}     t/T = ${fmt(state.t,3)}`,60,113);
-const labels=['(a) Instantaneous Ex (V/m)','(b) Instantaneous Sz (W/cm²)','(c) Cycle-averaged Sz (W/cm²)'];for(let mode=0;mode<3;mode++){const off=document.createElement('canvas');off.width=580;off.height=675;drawFigure(off,mode,false);const x=75+mode*1060,y=183;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.fillStyle='#203b4c';g.font='bold 27px Arial';g.fillText(labels[mode],x+75,162);g.drawImage(off,x,y,1020,1134)}g.fillStyle='#71818a';g.font='19px Arial';g.fillText('Reference per-source power ≤ 1 W; uniform rectangular aperture; spherical propagation; vector transverse fields; far-field element approximation',85,1372);
+const labels=['(a) Instantaneous Ex (V/m)','(b) Instantaneous Sz (W/cm²)','(c) Cycle-averaged Sz (W/cm²)'];for(let mode=0;mode<3;mode++){const off=document.createElement('canvas');off.width=580;off.height=675;drawFigure(off,mode,false);const x=75+mode*1060,y=183;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.fillStyle='#203b4c';g.font='bold 27px Arial';g.fillText(labels[mode],x+75,162);g.drawImage(off,x,y,1020,1134)}g.fillStyle='#71818a';g.font='19px Arial';g.fillText('Reference per-source power ≤ 10 W; uniform rectangular aperture; spherical propagation; vector transverse fields; far-field element approximation',85,1372);
 c.toBlob(b=>{if(b)dl(b,'WaveLab_reference_fields_3240px.png')},'image/png');
 }finally{state.data=orig.data;state.peakEx=orig.peakEx;state.peakFlux=orig.peakFlux;btn.disabled=false;btn.textContent='论文图 PNG';dynamic();}}
 function exportCSV(){if(!state.data)return;const n=state.n,fields=state.data.fields;let lines=['x_m,y_m,Ex_re_Vpm,Ex_im_Vpm,Ex_instant_Vpm,Sz_instant_Wpcm2,Sz_cycle_mean_Wpcm2'];const co=Math.cos(TWO*state.t),si=Math.sin(TWO*state.t);for(let j=0;j<n;j++){const y=(.5-(j+.5)/n)*state.Ly;for(let i=0;i<n;i++){const x=((i+.5)/n-.5)*state.Lx,p=j*n+i,ex=fields.erx[p]*co+fields.eix[p]*si,ey=fields.ery[p]*co+fields.eiy[p]*si,hx=fields.hrx[p]*co+fields.hix[p]*si,hy=fields.hry[p]*co+fields.hiy[p]*si,sz=(ex*hy-ey*hx)/1e4;lines.push([x,y,fields.erx[p],fields.eix[p],ex,sz,fields.szAvg[p]].map(v=>Number(v).toPrecision(9)).join(','))}}
