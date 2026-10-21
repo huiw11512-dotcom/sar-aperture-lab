@@ -128,3 +128,41 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
 #scanSummary{font-size:15px;line-height:1.55;font-weight:620;color:#34566a;flex:1;min-width:240px}
 @media(max-width:1200px){.study-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.scan-charts{grid-template-columns:1fr}.scan-heading{grid-template-columns:1fr}}
 @media(max-width:600px){.study-metrics{grid-template-columns:1fr}.study-actions{grid-template-columns:1fr}.study-metric strong{font-size:20px}}
+
+
+/* Keep the experimental coplanar study out of the user interface. */
+#studyControls,
+.study-panel {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Make both readings in the hover magnifier clearly legible. */
+.lens {
+  width: 270px;
+}
+.lens-head {
+  font-size: 15px;
+}
+.lens canvas {
+  width: 248px;
+  height: 248px;
+}
+.lens-pos {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.lens-val,
+.lens-max-val {
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 750;
+}
+.lens-max-val {
+  margin-top: 9px;
+  padding: 8px 7px;
+  border-top: 2px solid #cf193e;
+  border-radius: 5px;
+  background: #fff5f6;
+  color: #a91532;
+}
