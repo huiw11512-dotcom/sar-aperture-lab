@@ -23,33 +23,93 @@
 @media(max-width:1350px){.shell{grid-template-columns:285px minmax(0,1fr)}.main{padding:22px}.plots{gap:4px}.figure{padding:13px}.overview{gap:8px}}
 @media(max-width:1050px){.plots{grid-template-columns:repeat(2,1fr)}.plot-frame:last-child{max-width:520px}.bottom{grid-template-columns:1fr}}
 @media(max-width:760px){.probe-panel .inputs{width:100%}.probe-panel .inputs input{width:110px}.shell{display:block}.side{max-height:none;position:static;padding:16px 18px}.main{padding:18px 13px}.top{flex-direction:column;align-items:flex-start}.plots{grid-template-columns:1fr}.plot-frame:last-child{max-width:none}.overview{grid-template-columns:repeat(2,minmax(0,1fr))}.workbar{flex-wrap:wrap}.timeline{order:2;flex-basis:100%}.figure{padding:10px}.figure-head{padding:5px}.footer{flex-direction:column}}
+
+
+/* Wave Lab V7 — editorial scientific UI; no microcopy on the primary surface */
+:root{--page:#f3f6f8;--paper:#fff;--ink:#203345;--muted:#6a7d8c;--line:#dce5ea;--accent:#087e95}
+body{font:15px/1.5 var(--sans);background:var(--page)}
+.shell{grid-template-columns:330px minmax(0,1fr)}
+.side{background:#fff;padding:24px 22px;box-shadow:3px 0 30px rgba(28,53,68,.035)}
+.identity{margin-bottom:30px}.symbol{width:42px;height:42px;background:#e7f6f8;border:0;border-radius:12px;font-size:25px}
+.identity strong{font-size:22px;font-weight:760;letter-spacing:-.5px}
+.side-sub,.minor,.foot-side,.identity small,.section h3 span,.top .eyebrow,.top p,.figure-head>span,.plot-desc,.subpanel>p,.target-chip,.probe-panel .hint,.lens-foot,.footer span{display:none!important}
+.section{margin-top:24px;padding-top:23px}.section h3{font-size:16px;font-weight:720;margin-bottom:17px}
+.section h3 span{display:none}
+.form-grid{gap:15px 12px}.control label,.probe-panel .inputs label{font-size:13px;font-weight:600;color:#526a7d;margin-bottom:7px}
+.control input,.control select,.probe-panel .inputs input{height:44px;border-radius:9px;border:1px solid #d4dfe5;background:#fdfefe;padding:9px 11px;font-size:15px}
+.control .suffix::after{font-size:13px;top:12px}
+.control .suffix input{padding-right:37px}
+input[type=number]{font-size:15px}
+#apPhysical,#lambda{font-size:14px!important;font-weight:700!important;padding:13px 0!important;white-space:nowrap}
+.node{background:#fff;border:1px solid #dde7ec;border-radius:10px;padding:13px 11px;margin-bottom:2px}
+.node-title{font-size:14px;margin-bottom:11px}.node-title i{width:9px;height:9px}
+.node-grid{gap:8px}.node-grid label{font-size:12px;color:#607788;margin-bottom:5px}
+.node-grid input{font-size:14px;height:38px;padding:5px 2px;border-radius:7px}
+.button{font-size:14px;padding:10px 15px;border-radius:9px;font-weight:650}.button.primary{background:#087e95;border-color:#087e95}
+.button:hover{box-shadow:0 2px 9px rgba(20,64,79,.08)}
+.main{max-width:1880px;padding:28px 34px 40px}
+.top{margin-bottom:18px;align-items:center}.top h1{font-size:29px;font-weight:760;margin:0}
+.actions{flex-wrap:wrap;gap:10px}.status{font-size:13px;border-radius:50px;background:#e8f4f5;padding:8px 12px;font-weight:600}
+.workbar{border-radius:13px;box-shadow:0 5px 20px rgba(25,61,80,.035);padding:15px 19px;margin-bottom:20px;gap:16px}
+.workbar label{font-size:14px}.timeline output{font-size:14px}.speed select{font-size:14px;border-radius:8px;padding:8px}
+.probe-panel{border-radius:12px;padding:18px 22px;align-items:center;margin-bottom:13px;box-shadow:0 3px 15px rgba(23,58,76,.025);gap:10px 20px}
+.target-panel{border-color:#e3e6df;background:#fff}
+.probe-panel .head{font-size:17px;font-weight:750;color:#264354;line-height:1.5}
+.target-panel .head{color:#a3693d}
+.probe-panel .inputs{gap:11px}.probe-panel .inputs input{width:116px}
+.ranges{width:100%;flex-basis:100%;padding-top:9px;border-top:1px solid #edf1f3}
+.ranges summary{font-size:13px;font-weight:600;color:#668090;cursor:pointer;display:list-item;list-style:inside}
+.ranges .distance-info{border-top:0;margin-top:9px;padding:0;line-height:1.8;font-size:13px}
+.overview{gap:13px;margin:19px 0}
+.metric{border-radius:12px;padding:16px 19px;box-shadow:0 3px 12px rgba(22,60,76,.025)}
+.metric .caption{font-size:13px;color:#68818f;font-weight:600}
+.metric .value{font-size:22px;font-weight:730;color:#1b3a4c;white-space:normal;overflow-wrap:anywhere}
+.metric .value small{font-size:13px}
+.figure{border-radius:14px;padding:23px 20px 17px;box-shadow:0 7px 28px rgba(20,51,71,.04)}
+.figure-head{padding:0 6px 15px}.figure-head strong{font-size:19px;font-weight:760}
+.plots{gap:15px}.plot-frame{border:1px solid #ebf0f2;border-radius:10px;padding:6px;background:#fff}
+.plot-title{font-size:15px;font-weight:700;padding:8px 0 12px;color:#365263;line-height:1.4}
+.sample-alert{font-size:13px;line-height:1.55;padding:12px 4px 0;margin-top:4px}.sample-alert.warn{color:#af642d}
+.bottom{gap:16px;margin-top:18px}
+.subpanel{border-radius:14px;padding:20px 23px;box-shadow:0 5px 20px rgba(20,51,71,.035)}
+.subpanel h3{font-size:17px;font-weight:750;margin-bottom:14px}.subpanel canvas{height:270px}
+.note{font-size:13px;line-height:1.65;color:#5d7280;margin-top:10px}
+.node-legend{font-size:12px;gap:10px 15px}
+.node-legend i{width:16px;height:4px}
+.wave-lens{border-radius:13px;box-shadow:0 16px 48px rgba(27,56,68,.19)}
+.wave-lens .lens-head{font-size:14px}.wave-lens .lens-tag{font-size:12px}
+.wave-lens .lens-pos,.wave-lens .lens-value{font-size:13px}
+.footer{margin-top:18px}.footer a{font-size:13px;font-family:var(--sans)}
+@media(max-width:1350px){.shell{grid-template-columns:290px minmax(0,1fr)}.main{padding:24px}.plots{gap:9px}.figure{padding:15px}}
+@media(max-width:1080px){.plots{grid-template-columns:repeat(2,minmax(0,1fr))}.plot-frame:last-child{max-width:none}.overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){.shell{display:block}.side{max-height:none;position:static;padding:19px 18px}.main{padding:18px 13px}.top{flex-direction:column;align-items:flex-start}.plots{grid-template-columns:1fr}.probe-panel .inputs{width:100%}.probe-panel .inputs input{width:100%}.probe-panel .inputs>div{flex:1;min-width:85px}.bottom{grid-template-columns:1fr}.workbar{flex-wrap:wrap}.timeline{order:2;flex-basis:100%}.metric .value{font-size:18px}}
 </style>
 </head>
 <body>
 <div class="shell">
   <aside class="side">
-    <div class="identity"><div class="symbol">∿</div><div><strong>Wave Lab</strong><small>SPATIAL FIELD / 02</small></div></div>
-    <p class="side-sub">多节点单频波场 · 固定截面与周期演化</p>
+    <div class="identity"><div class="symbol">∿</div><div><strong>Wave Lab</strong></div></div>
+    
     <section class="section">
-      <h3>空间与频率 <span>SI UNITS</span></h3>
+      <h3>空间与频率</h3>
       <div class="form-grid">
         <div class="control"><label for="freq">工作频率</label><div class="suffix" data-unit="GHz"><input type="number" id="freq" min="0.2" max="100" value="10" step="0.1"></div></div>
         <div class="control"><label for="height">截面高度</label><div class="suffix" data-unit="m"><input type="number" id="height" min="1" max="10000" value="50" step="1"></div></div>
         <div class="control"><label for="spanX">截面宽度 X</label><div class="suffix" data-unit="m"><input type="number" id="spanX" min="0.03" max="500" value="2.4" step="0.1"></div></div>
         <div class="control"><label for="spanY">截面宽度 Y</label><div class="suffix" data-unit="m"><input type="number" id="spanY" min="0.03" max="500" value="2.4" step="0.1"></div></div>
-        <div class="control"><label for="resolution">计算网格</label><select id="resolution"><option value="256">256 × 256</option><option value="384" selected>384 × 384</option><option value="512">512 × 512</option><option value="640">640 × 640</option></select></div>
+        <div class="control"><label for="resolution">计算网格</label><select id="resolution"><option value="512">512 × 512</option><option value="768">768 × 768</option><option value="1000" selected>1000 × 1000</option><option value="1280">1280 × 1280</option></select></div>
         <div class="control"><label>自由空间波长</label><div style="padding:9px 0;color:#216e7e;font:600 12px var(--mono)" id="lambda">30.0 mm</div></div>
       </div>
     </section>
     <section class="section">
-      <h3>矩形口径 <span>λ UNITS</span></h3>
+      <h3>矩形口径</h3>
       <div class="form-grid">
         <div class="control"><label for="apX">口径长 a</label><div class="suffix" data-unit="λ"><input type="number" id="apX" min="0.5" max="30" value="5" step="0.5"></div></div>
         <div class="control"><label for="apY">口径宽 b</label><div class="suffix" data-unit="λ"><input type="number" id="apY" min="0.5" max="30" value="5" step="0.5"></div></div>
         <div class="control"><label for="eta">口面效率 η</label><input type="number" id="eta" min="0.01" max="1" value="0.7" step="0.05"></div>
         <div class="control"><label>实际口径</label><div id="apPhysical" style="padding:9px 0;font:11px var(--mono);color:#216e7e">0.150 × 0.150 m</div></div>
       </div>
-      <p class="minor">采用均匀照明矩形口径的 sinc × sinc 场方向图。各节点的虚拟口面法线朝向目标 T；无需输入3 dB波束宽度。</p>
+      
     </section>
     <section class="section">
       <h3>节点布置 <span>z = 0 m</span></h3>
@@ -57,39 +117,39 @@
         <div class="control"><label for="count">节点数</label><select id="count"><option>2</option><option>3</option><option selected>4</option><option>6</option><option>8</option></select></div>
         <div class="control"><label>相位处理</label><div class="buttonrow"><button class="button" id="equal">同相</button><button class="button" id="random">随机</button></div></div>
       </div>
-      <p class="minor">节点位置用地面坐标 x、y（米）输入。相位表示独立源的初始相位；功率为单路输入参考值，范围0–10 W（默认1 W）。</p>
+      
       <div id="nodes" class="nodetable"></div>
     </section>
-    <div class="foot-side">Wave Lab / 物理可视化实验<br>单频、均匀口径、虚拟口面随 T 定向。<br>默认每节点1 W（当前低功率演示范围0–10 W）。<br>不连接真实发射硬件，也不自动修改源相位。</div>
+    
   </aside>
   <main class="main">
-    <header class="top"><div><div class="eyebrow">WAVE PROPAGATION / INTERFERENCE</div><h1>空间干涉场分析</h1><p>矩形口径方向图 · 球面传播路径 · 单周期电磁场与法向能流</p></div><div class="actions"><span class="status" id="status">就绪</span><a class="button" style="text-decoration:none" href="./validation/" title="独立有限口径积分、网格收敛与功率闭合验收报告">数值验收报告 ↗</a><button class="button" id="csv">CSV 数据</button><button class="button primary" id="png">论文图 PNG</button></div></header>
+    <header class="top"><div><h1>空间干涉场</h1></div><div class="actions"><span class="status" id="status">就绪</span><a class="button" style="text-decoration:none" href="./validation/" title="独立有限口径积分、网格收敛与功率闭合验收报告">数值验收报告 ↗</a><button class="button" id="csv">CSV 数据</button><button class="button primary" id="png">论文图 PNG</button></div></header>
     <div class="workbar"><button class="button primary play" id="play">▶ 播放</button><button class="button" id="reset">复位</button><div class="timeline"><label for="time">t / T</label><input type="range" id="time" min="0" max="1" value="0" step="0.001"><output id="timeVal">0.000 T</output></div><div class="speed"><label for="speed">播放速度</label><select id="speed"><option value="0.2">0.2×</option><option value="0.5" selected>0.5×</option><option value="1">1×</option></select></div></div>
     <section class="probe-panel target-panel" aria-label="独立目标位置设置">
-      <div><div class="head">目标位置 T <span class="target-chip">天线朝向联动 · 重新计算</span></div><div class="hint">设置独立目标 (x, y, z)。各节点的虚拟天线指向随 T 改变，并重新计算整个水平截面的矢量场；在图上标注 T 的 XY 投影。观察点 Q 始终独立，用于读数。</div></div>
+      <div><div class="head">目标位置 T <span class="target-chip"></span></div></div>
       <div class="inputs">
         <div><label for="targetX">目标 x / m</label><input id="targetX" type="number" step="any" value="0" inputmode="decimal"></div>
         <div><label for="targetY">目标 y / m</label><input id="targetY" type="number" step="any" value="0" inputmode="decimal"></div>
         <div><label for="targetZ">目标 z / m</label><input id="targetZ" type="number" step="any" value="50" inputmode="decimal" min="0"></div>
         <button class="button" id="targetDefault" type="button">目标回到中心</button>
       </div>
-      <div class="distance-info" id="targetDistances">节点至目标的三维距离：计算中…</div>
+      <details class="ranges"><summary>查看各节点至目标距离</summary><div class="distance-info" id="targetDistances">—</div></details>
     </section>
     <section class="probe-panel" aria-label="观察位置分析">
-      <div><div class="head">空间观察点 Q <span style="font-weight:400;color:#84929c">· 仅读取场强，不改变天线朝向</span></div><div class="hint">输入 x、y 或直接点击上方场图选取 Q，分析该位置的到达电场、时域波形和各节点传播距离；z 等于当前截面高度。</div></div>
+      <div><div class="head">观察点 Q</div></div>
       <div class="inputs"><div><label for="probeX">观察 x / m</label><input id="probeX" type="number" step="any" value="0" inputmode="decimal"></div><div><label for="probeY">观察 y / m</label><input id="probeY" type="number" step="any" value="0" inputmode="decimal"></div><button class="button" id="probeCenter" type="button">返回原点</button></div>
-      <div class="distance-info" id="probeDistances">各路传播距离：计算中…</div>
+      <details class="ranges"><summary>查看各节点至观察点距离</summary><div class="distance-info" id="probeDistances">—</div></details>
     </section>
-    <div class="overview"><div class="metric"><div class="caption">工作波长</div><div class="value" id="mLambda">30.0 <small>mm</small></div></div><div class="metric"><div class="caption">计算样本</div><div class="value" id="mGrid">384²</div></div><div class="metric"><div class="caption">观测坐标 (x, y)</div><div class="value" id="mXY">0.00, 0.00 <small>m</small></div></div><div class="metric"><div class="caption">该点平均法向通量</div><div class="value" id="mMean">—</div></div></div>
-    <section class="figure"><div class="figure-head"><strong>Figure 01　水平截面场分布</strong><span>z = <span id="figureH">50</span> m · 物理单位 · 通量图统一色阶</span></div>
-      <div class="plots"><div class="plot-frame"><canvas id="field" width="580" height="675" aria-label="瞬时电场分量 Ex，单位 V/m"></canvas><div class="plot-title">(a) 瞬时电场 Eₓ(t)</div><div class="plot-desc">V/m · 有符号 x 分量</div></div><div class="plot-frame"><canvas id="square" width="580" height="675" aria-label="瞬时法向功率通量 Sz，单位 W/cm²"></canvas><div class="plot-title">(b) 瞬时法向通量 S_z(t)</div><div class="plot-desc">W/cm² · 瞬时坡印廷通量</div></div><div class="plot-frame"><canvas id="mean" width="580" height="675" aria-label="周期平均法向功率通量，单位 W/cm²"></canvas><div class="plot-title">(c) 周期平均 ⟨S_z⟩</div><div class="plot-desc">W/cm² · 固定相位时为静态分布</div></div></div>
+    <div class="overview"><div class="metric"><div class="caption">工作波长</div><div class="value" id="mLambda">30.0 <small>mm</small></div></div><div class="metric"><div class="caption">计算样本</div><div class="value" id="mGrid">1000²</div></div><div class="metric"><div class="caption">观测坐标 (x, y)</div><div class="value" id="mXY">0.00, 0.00 <small>m</small></div></div><div class="metric"><div class="caption">该点平均法向通量</div><div class="value" id="mMean">—</div></div></div>
+    <section class="figure"><div class="figure-head"><strong>水平截面场分布</strong><span style="display:none">z = <span id="figureH">50</span> m</span></div>
+      <div class="plots"><div class="plot-frame"><canvas id="field" width="580" height="675" aria-label="瞬时电场分量 Ex，单位 V/m"></canvas><div class="plot-title">(a) 瞬时电场 Eₓ(t)</div></div><div class="plot-frame"><canvas id="square" width="580" height="675" aria-label="瞬时法向功率通量 Sz，单位 W/cm²"></canvas><div class="plot-title">(b) 瞬时法向通量 S_z(t)</div></div><div class="plot-frame"><canvas id="mean" width="580" height="675" aria-label="周期平均法向功率通量，单位 W/cm²"></canvas><div class="plot-title">(c) 周期平均 ⟨S_z⟩</div></div></div>
       <div class="sample-alert" id="sampleAlert">正在核对空间采样分辨率……</div>
     </section>
     <div class="bottom">
-      <section class="subpanel"><h3>观察点 Q · 总场与瞬时功率</h3><p>点击上方任意截面图，显示该位置的合成电场 Eₓ(t) 与瞬时法向通量 S_z(t)。</p><canvas id="trace" width="790" height="300"></canvas><div id="probeSummary" class="note"></div></section>
-      <section class="subpanel"><h3>各节点 → 观察点 Q · 时域电场与到达相位</h3><p>逐路计算到达同一观察点的 Eₓ,n(t)，并绘制相干合成总场。各路功率与传播距离会同时改变曲线幅度。</p><canvas id="nodeTrace" width="790" height="300"></canvas><div class="node-legend" id="nodeLegend"></div><div id="phaseSummary" class="note"></div></section>
+      <section class="subpanel"><h3>观察点 Q · 合成波形</h3><canvas id="trace" width="790" height="300"></canvas><div id="probeSummary" class="note"></div></section>
+      <section class="subpanel"><h3>各节点时域电场</h3><canvas id="nodeTrace" width="790" height="300"></canvas><div class="node-legend" id="nodeLegend"></div><div id="phaseSummary" class="note"></div></section>
     </div>
-    <footer class="footer"><span>WAVE LAB / 2026 · Browser-based scientific visualization</span><a href="https://github.com/huiw11512-dotcom/sar-aperture-lab/tree/main/wave-lab" target="_blank" rel="noreferrer">SOURCE / GITHUB ↗</a></footer>
+    <footer class="footer"><a href="https://github.com/huiw11512-dotcom/sar-aperture-lab/tree/main/wave-lab" target="_blank" rel="noreferrer">SOURCE / GITHUB ↗</a></footer>
   </main>
 </div>
 <div class="wave-lens" id="waveLens" role="tooltip" aria-hidden="true">
@@ -97,12 +157,12 @@
  <canvas id="lensCanvas" width="448" height="448"></canvas>
  <div class="lens-pos" id="lensPos">x = — ; y = —</div>
  <div class="lens-value" id="lensValue">—</div>
- <div class="lens-foot">悬浮放大；单击热图仍可设置观察点 Q</div>
+ 
 </div>
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id),TWO=2*Math.PI,C=299792458,Z0=376.730313668;
-const state={freq:10,H:50,Lx:2.4,Ly:2.4,apX:5,apY:5,eta:.7,N:4,n:384,t:0,speed:.5,playing:false,rx:0,ry:0,tx:0,ty:0,tz:50,nodes:[],data:null,peakEx:1,peakFlux:1,last:0,lensImages:{},lensMouse:null};
+const state={freq:10,H:50,Lx:2.4,Ly:2.4,apX:5,apY:5,eta:.7,N:4,n:1000,t:0,speed:.5,playing:false,rx:0,ry:0,tx:0,ty:0,tz:50,nodes:[],data:null,peakEx:1,peakFlux:1,last:0,lensImages:{},lensMouse:null};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const sinc=x=>Math.abs(x)<1e-9?1:Math.sin(x)/x;
 const fmt=(v,d=2)=>Number(v).toFixed(d);
@@ -249,7 +309,7 @@ for(const key of ['erx','eix','ery','eiy','hrx','hix','hry','hiy'])fields[key][p
 function atIndex(index,d=state.data){const f=d.fields,p={};for(const key of ['erx','eix','ery','eiy','hrx','hix','hry','hiy'])p[key]=f[key][index];return p}
 function indexAt(x,y,d=state.data){const n=d.n,i=clamp(Math.floor((x/state.Lx+.5)*n),0,n-1),j=clamp(Math.floor((.5-y/state.Ly)*n),0,n-1);return j*n+i;}
 let timer=null;function queue(){clearTimeout(timer);$('status').textContent='计算中…';timer=setTimeout(compute,100)}
-function compute(){const d=computeData(state.n);state.data=d;let peakEx=0,maxFlux=0,minFlux=Infinity;
+function compute(){state.meanRaster=null;const d=computeData(state.n);state.data=d;let peakEx=0,maxFlux=0,minFlux=Infinity;
 for(let p=0;p<d.n*d.n;p++){peakEx=Math.max(peakEx,Math.hypot(d.fields.erx[p],d.fields.eix[p]));const v=d.fields.szAvg[p];maxFlux=Math.max(maxFlux,v);minFlux=Math.min(minFlux,v)}
 state.peakEx=Math.max(1e-10,peakEx);state.peakFlux=Math.max(1e-15,maxFlux*2.0);
 $('lambda').textContent=fmt(d.lam*1000,2)+' mm';$('apPhysical').textContent=fmt(state.apX*d.lam,3)+' × '+fmt(state.apY*d.lam,3)+' m';$('figureH').textContent=fmt(state.H,1);$('mLambda').innerHTML=fmt(d.lam*1000,2)+' <small>mm</small>';$('mGrid').textContent=state.n+'²';
@@ -269,10 +329,10 @@ const f=d.fields,co=Math.cos(TWO*t),si=Math.sin(TWO*t),pkE=state.peakEx,pkS=stat
 for(let i=0;i<n*n;i++){const ex=f.erx[i]*co+f.eix[i]*si,ey=f.ery[i]*co+f.eiy[i]*si,hx=f.hrx[i]*co+f.hix[i]*si,hy=f.hry[i]*co+f.hiy[i]*si;
 const value=mode===0?ex:mode===1?(ex*hy-ey*hx)/10000:f.szAvg[i];const v=mode===0?(value/pkE+1)*.5:value/pkS,idx=4*i,ci=Math.round(clamp(v,0,1)*255)*3,lut=mode===0?lutS:lutP;out[idx]=lut[ci];out[idx+1]=lut[ci+1];out[idx+2]=lut[ci+2];out[idx+3]=255;}g.putImageData(img,0,0);return c;}
 function drawFigure(canvas,mode,showPoint=false){if(!state.data)return;const g=canvas.getContext('2d'),W=canvas.width,H=canvas.height;g.clearRect(0,0,W,H);g.fillStyle='#fff';g.fillRect(0,0,W,H);const x0=86,y0=36,sz=448;
-const im=imageData(mode);if(showPoint)state.lensImages[mode]=im;g.save();g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(im,x0,y0,sz,sz);g.restore();g.lineWidth=1;g.strokeStyle='#52616b';g.strokeRect(x0+.5,y0+.5,sz,sz);
-g.fillStyle='#304452';g.font='17px Arial, sans-serif';g.textAlign='center';for(let i=0;i<=4;i++){const vx=(i/4-.5)*state.Lx,xx=x0+i*sz/4;g.beginPath();g.moveTo(xx,y0+sz);g.lineTo(xx,y0+sz+6);g.stroke();g.fillText(fmt(vx,state.Lx<1?2:1),xx,y0+sz+29);const vy=(.5-i/4)*state.Ly,yy=y0+i*sz/4;g.beginPath();g.moveTo(x0-6,yy);g.lineTo(x0,yy);g.stroke();g.textAlign='right';g.fillText(fmt(vy,state.Ly<1?2:1),x0-12,yy+6);g.textAlign='center'}g.fillText('x (m)',x0+sz/2,y0+sz+55);g.save();g.translate(26,y0+sz/2);g.rotate(-Math.PI/2);g.fillText('y (m)',0,0);g.restore();
+const im=mode===2?(state.meanRaster||(state.meanRaster=imageData(2))):imageData(mode);if(showPoint)state.lensImages[mode]=im;g.save();g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(im,x0,y0,sz,sz);g.restore();g.lineWidth=1;g.strokeStyle='#52616b';g.strokeRect(x0+.5,y0+.5,sz,sz);
+g.fillStyle='#304452';g.font='21px Arial, sans-serif';g.textAlign='center';for(let i=0;i<=4;i++){const vx=(i/4-.5)*state.Lx,xx=x0+i*sz/4;g.beginPath();g.moveTo(xx,y0+sz);g.lineTo(xx,y0+sz+6);g.stroke();g.fillText(fmt(vx,state.Lx<1?2:1),xx,y0+sz+29);const vy=(.5-i/4)*state.Ly,yy=y0+i*sz/4;g.beginPath();g.moveTo(x0-6,yy);g.lineTo(x0,yy);g.stroke();g.textAlign='right';g.fillText(fmt(vy,state.Ly<1?2:1),x0-12,yy+6);g.textAlign='center'}g.fillText('x (m)',x0+sz/2,y0+sz+55);g.save();g.translate(26,y0+sz/2);g.rotate(-Math.PI/2);g.fillText('y (m)',0,0);g.restore();
 const lx=x0,ly=590,lw=sz,lh=15;const palette=mode===0?signed:viridis;for(let i=0;i<192;i++){const col=color(i/191,palette);g.fillStyle=`rgb(${col.join(',')})`;g.fillRect(lx+i*lw/192,ly,lw/192+1,lh)}g.strokeStyle='#bac4cb';g.strokeRect(lx+.5,ly+.5,lw,lh);
-const p=mode===0?state.peakEx:state.peakFlux;g.fillStyle='#52616b';g.font='15px Arial, sans-serif';g.textAlign='left';g.fillText(mode===0?sci(-p):'0',lx,ly+34);g.textAlign='center';g.fillText(mode===0?'0':sci(p/2),lx+lw/2,ly+34);g.textAlign='right';g.fillText(sci(p),lx+lw,ly+34);g.font='14px Arial';g.textAlign='center';g.fillText(mode===0?'Eₓ (V/m)':'S_z (W/cm²)',lx+lw/2,ly+54);
+const p=mode===0?state.peakEx:state.peakFlux;g.fillStyle='#52616b';g.font='19px Arial, sans-serif';g.textAlign='left';g.fillText(mode===0?sci(-p):'0',lx,ly+34);g.textAlign='center';g.fillText(mode===0?'0':sci(p/2),lx+lw/2,ly+34);g.textAlign='right';g.fillText(sci(p),lx+lw,ly+34);g.font='18px Arial';g.textAlign='center';g.fillText(mode===0?'Eₓ (V/m)':'S_z (W/cm²)',lx+lw/2,ly+54);
 if(showPoint&&Math.abs(state.rx)<=state.Lx/2&&Math.abs(state.ry)<=state.Ly/2){const px=x0+(.5+state.rx/state.Lx)*sz,py=y0+(.5-state.ry/state.Ly)*sz;g.beginPath();g.arc(px,py,5,0,TWO);g.strokeStyle='white';g.lineWidth=4;g.stroke();g.beginPath();g.arc(px,py,5,0,TWO);g.strokeStyle='#1e3542';g.lineWidth=1.8;g.stroke()}
 if(showPoint&&Math.abs(state.tx)<=state.Lx/2&&Math.abs(state.ty)<=state.Ly/2){
   const xx=x0+(.5+state.tx/state.Lx)*sz,yy=y0+(.5-state.ty/state.Ly)*sz;
@@ -281,7 +341,7 @@ if(showPoint&&Math.abs(state.tx)<=state.Lx/2&&Math.abs(state.ty)<=state.Ly/2){
   g.fillStyle='#8e4722';g.font='bold 13px Arial';g.textAlign='left';g.fillText(Math.abs(state.tz-state.H)<1e-9?'T':'T (投影)',xx+11,yy-11);g.restore();
 }
 }
-function traceAxes(g,cv,{yMin,yMax,unit}){const W=cv.width,H=cv.height,x0=64,y0=25,w=W-(unit==='Eₓ (V/m)'?150:96),h=H-73;g.clearRect(0,0,W,H);g.fillStyle='#fff';g.fillRect(0,0,W,H);g.strokeStyle='#e1e7eb';g.lineWidth=1;g.font='14px Arial';g.fillStyle='#607587';for(let k=0;k<=4;k++){const x=x0+k*w/4;g.beginPath();g.moveTo(x,y0);g.lineTo(x,y0+h);g.stroke();g.textAlign='center';g.fillText(fmt(k/4,2),x,y0+h+26);const y=y0+k*h/4;g.beginPath();g.moveTo(x0,y);g.lineTo(x0+w,y);g.stroke();g.textAlign='right';g.fillText(sci(yMax-(yMax-yMin)*k/4),x0-9,y+5)}g.textAlign='center';g.fillText('t / T',x0+w/2,H-9);g.textAlign='left';g.fillText(unit,x0,y0-9);return {x0,y0,w,h,yy:v=>y0+h*(yMax-v)/(yMax-yMin)}}
+function traceAxes(g,cv,{yMin,yMax,unit}){const W=cv.width,H=cv.height,x0=64,y0=25,w=W-(unit==='Eₓ (V/m)'?150:96),h=H-73;g.clearRect(0,0,W,H);g.fillStyle='#fff';g.fillRect(0,0,W,H);g.strokeStyle='#e1e7eb';g.lineWidth=1;g.font='17px Arial';g.fillStyle='#607587';for(let k=0;k<=4;k++){const x=x0+k*w/4;g.beginPath();g.moveTo(x,y0);g.lineTo(x,y0+h);g.stroke();g.textAlign='center';g.fillText(fmt(k/4,2),x,y0+h+26);const y=y0+k*h/4;g.beginPath();g.moveTo(x0,y);g.lineTo(x0+w,y);g.stroke();g.textAlign='right';g.fillText(sci(yMax-(yMax-yMin)*k/4),x0-9,y+5)}g.textAlign='center';g.fillText('t / T',x0+w/2,H-9);g.textAlign='left';g.fillText(unit,x0,y0-9);return {x0,y0,w,h,yy:v=>y0+h*(yMax-v)/(yMax-yMin)}}
 function waveLine(g,axes,f,color,width=2){g.beginPath();g.strokeStyle=color;g.lineWidth=width;for(let i=0;i<=400;i++){const t=i/400,v=f(t),x=axes.x0+t*axes.w,y=axes.yy(v);if(!i)g.moveTo(x,y);else g.lineTo(x,y)}g.stroke()}
 function markTime(g,axes){g.strokeStyle='#607c8c';g.lineWidth=1.4;g.setLineDash([5,4]);g.beginPath();const x=axes.x0+state.t*axes.w;g.moveTo(x,axes.y0);g.lineTo(x,axes.y0+axes.h);g.stroke();g.setLineDash([])}
 function plotTrace(){
@@ -316,14 +376,14 @@ if(document.activeElement!==$('probeX'))$('probeX').value=String(Number(state.rx
 const ranges=state.nodes.map((nd,i)=>({i,r:Math.hypot(state.rx-nd.x,state.ry-nd.y,state.H)}));
 $('probeDistances').innerHTML='<b>各节点 → 观察点距离</b>　'+ranges.map(p=>'节点'+(p.i+1)+' '+p.r.toFixed(3)+' m').join('　·　') + (Math.abs(state.rx)>state.Lx/2||Math.abs(state.ry)>state.Ly/2?'　（观察点位于当前显示截面之外）':'');
 $('time').value=state.t;$('timeVal').textContent=fmt(state.t,3)+' T';if(!state.data)return;drawFigure($('field'),0,true);drawFigure($('square'),1,true);drawFigure($('mean'),2,true);$('mXY').innerHTML=fmt(state.rx,2)+', '+fmt(state.ry,2)+' <small>m</small>';plotTrace();plotNodeTrace();if(state.lensMouse)updateLens()}
-let lastPaint=0;function tick(time){if(state.playing&&state.data){if(state.last)state.t=(state.t+clamp((time-state.last)/1000,0,.1)*state.speed)%1;if(time-lastPaint>45){dynamic();lastPaint=time}}state.last=time;requestAnimationFrame(tick)}
+let lastPaint=0;function tick(time){if(state.playing&&state.data){if(state.last)state.t=(state.t+clamp((time-state.last)/1000,0,.1)*state.speed)%1;if(time-lastPaint>85){dynamic();lastPaint=time}}state.last=time;requestAnimationFrame(tick)}
 function dl(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000)}
-async function exportPNG(){if(!state.data)return;const btn=$('png');btn.disabled=true;btn.textContent='生成中…';await new Promise(r=>setTimeout(r,25));const orig={data:state.data,peakEx:state.peakEx,peakFlux:state.peakFlux};
-try{const high=computeData(900);state.data=high;let pkE=0,pkS=0;for(let i=0;i<high.n**2;i++){pkE=Math.max(pkE,Math.hypot(high.fields.erx[i],high.fields.eix[i]));pkS=Math.max(pkS,high.fields.szAvg[i])}state.peakEx=Math.max(1e-10,pkE);state.peakFlux=Math.max(1e-15,pkS*2);
+async function exportPNG(){if(!state.data)return;const btn=$('png');btn.disabled=true;btn.textContent='生成中…';await new Promise(r=>setTimeout(r,25));const orig={data:state.data,peakEx:state.peakEx,peakFlux:state.peakFlux,meanRaster:state.meanRaster};
+try{const high=state.data.n>=1000?state.data:computeData(1000);state.data=high;state.meanRaster=null;let pkE=0,pkS=0;for(let i=0;i<high.n**2;i++){pkE=Math.max(pkE,Math.hypot(high.fields.erx[i],high.fields.eix[i]));pkS=Math.max(pkS,high.fields.szAvg[i])}state.peakEx=Math.max(1e-10,pkE);state.peakFlux=Math.max(1e-15,pkS*2);
 const W=3240,H=1400,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,H);g.fillStyle='#1e2b38';g.font='bold 42px Arial';g.fillText('Spatial interference: electric field and normal power flux',60,70);g.font='24px Arial';g.fillStyle='#586c7a';g.fillText(`f = ${state.freq} GHz     z = ${state.H} m     aperture = ${state.apX}λ × ${state.apY}λ     N = ${state.N}     t/T = ${fmt(state.t,3)}`,60,113);
 const labels=['(a) Instantaneous Ex (V/m)','(b) Instantaneous Sz (W/cm²)','(c) Cycle-averaged Sz (W/cm²)'];for(let mode=0;mode<3;mode++){const off=document.createElement('canvas');off.width=580;off.height=675;drawFigure(off,mode,false);const x=75+mode*1060,y=183;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.fillStyle='#203b4c';g.font='bold 27px Arial';g.fillText(labels[mode],x+75,162);g.drawImage(off,x,y,1020,1134)}g.fillStyle='#71818a';g.font='19px Arial';g.fillText('1 W per source by default; target-oriented virtual apertures; independent phases; spherical propagation; ideal element patterns; educational model',85,1372);
 c.toBlob(b=>{if(b)dl(b,'WaveLab_reference_fields_3240px.png')},'image/png');
-}finally{state.data=orig.data;state.peakEx=orig.peakEx;state.peakFlux=orig.peakFlux;btn.disabled=false;btn.textContent='论文图 PNG';dynamic();}}
+}finally{state.data=orig.data;state.peakEx=orig.peakEx;state.peakFlux=orig.peakFlux;state.meanRaster=orig.meanRaster;btn.disabled=false;btn.textContent='论文图 PNG';dynamic();}}
 function exportCSV(){if(!state.data)return;const n=state.n,fields=state.data.fields;let lines=['x_m,y_m,Ex_re_Vpm,Ex_im_Vpm,Ex_instant_Vpm,Sz_instant_Wpcm2,Sz_cycle_mean_Wpcm2'];const co=Math.cos(TWO*state.t),si=Math.sin(TWO*state.t);for(let j=0;j<n;j++){const y=(.5-(j+.5)/n)*state.Ly;for(let i=0;i<n;i++){const x=((i+.5)/n-.5)*state.Lx,p=j*n+i,ex=fields.erx[p]*co+fields.eix[p]*si,ey=fields.ery[p]*co+fields.eiy[p]*si,hx=fields.hrx[p]*co+fields.hix[p]*si,hy=fields.hry[p]*co+fields.hiy[p]*si,sz=(ex*hy-ey*hx)/1e4;lines.push([x,y,fields.erx[p],fields.eix[p],ex,sz,fields.szAvg[p]].map(v=>Number(v).toPrecision(9)).join(','))}}
 dl(new Blob(['\ufeff',lines.join('\n')],{type:'text/csv;charset=utf-8'}),'WaveLab_fields_SI.csv')}
 compute();requestAnimationFrame(tick);
