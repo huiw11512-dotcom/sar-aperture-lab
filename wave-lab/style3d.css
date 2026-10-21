@@ -105,3 +105,24 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
  .shared-scale-gradient{flex-basis:calc(100% - 38px)}
  .scale-max-control{margin-left:25px}
 }
+
+/* Coplanar-array study and reusable simulation configurations */
+.study-actions{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.study-actions button{font-size:14px;padding:10px 8px;min-height:42px}
+.study-panel{margin-bottom:17px}
+.scene-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.scene-heading h2{margin:0 0 13px;font-size:19px}
+#studyPlaneTitle{font-size:15px;font-weight:650;color:#436678;margin-bottom:13px}
+.study-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:6px 0 22px}
+.study-metric{border:1px solid #dce7eb;background:#fbfdfe;border-radius:11px;padding:15px;min-width:0}
+.study-metric label{font-size:14px;color:#526f80;margin-bottom:8px}
+.study-metric strong{display:block;font-size:22px;line-height:1.3;font-weight:780;color:#173f55;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.study-metric span{display:block;font-size:14px;color:#637f8f;margin-top:6px;line-height:1.45;overflow-wrap:anywhere}
+.scan-heading{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 5px}
+.scan-heading h3{font-size:16px;margin:0 0 5px;font-weight:750}
+.scan-charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.scan-charts canvas{display:block;width:100%;height:auto;aspect-ratio:1000/330;border:1px solid #e4edf1;border-radius:10px;background:#fff}
+.scan-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border-top:1px solid #e7eef1;padding-top:14px;margin-top:12px}
+#scanSummary{font-size:15px;line-height:1.55;font-weight:620;color:#34566a;flex:1;min-width:240px}
+@media(max-width:1200px){.study-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.scan-charts{grid-template-columns:1fr}.scan-heading{grid-template-columns:1fr}}
+@media(max-width:600px){.study-metrics{grid-template-columns:1fr}.study-actions{grid-template-columns:1fr}.study-metric strong{font-size:20px}}
