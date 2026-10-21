@@ -171,7 +171,7 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
  <div id="nodes"></div></section>
 </aside>
 <main class="main">
- <header class="headline"><h1>三维空间场 · 正交切片</h1><div class="top-actions"><span class="status" id="status">就绪</span><button id="exportConfig" type="button">导出配置</button><button id="importConfig" type="button">导入配置</button><input id="importConfigFile" type="file" accept=".json,application/json" hidden><button id="localDetail" type="button">精细视图</button><button id="restoreOverview" type="button" disabled>全域视图</button><button id="exportPNG" class="primary">导出论文图</button><select id="csvAxis" class="select-inline" aria-label="CSV导出截面"><option value="x">YZ</option><option value="y">XZ</option><option selected value="z">XY</option></select><button id="exportCSV">导出CSV</button></div></header>
+ <header class="headline"><div class="top-actions"><span class="status" id="status">就绪</span><button id="exportConfig" type="button">导出配置</button><button id="importConfig" type="button">导入配置</button><input id="importConfigFile" type="file" accept=".json,application/json" hidden><button id="localDetail" type="button">精细视图</button><button id="restoreOverview" type="button" disabled>全域视图</button><button id="exportPNG" class="primary">导出论文图</button><button id="exportCSV">导出CSV</button></div></header>
  <div class="workbar card"><button id="play" class="primary">▶ 播放</button><button id="reset">复位</button>
    <div class="timeline"><label for="time">周期时刻 <span id="timeValue" class="value">0.000 T</span></label><input type="range" id="time" min="0" max="1" step=".001" value="0"></div>
    <div class="speed"><label for="speed">播放速度</label><select id="speed"><option value=".25">慢</option><option value=".5" selected>中</option><option value="1">快</option></select></div>
@@ -1208,13 +1208,17 @@ function exportPNG(){
 }
 function exportCSV(){
  if(!state.data)return;
- const axis=$("csvAxis").value,n=state.data.n,prm=params(),f=state.data.axes[axis].fields,co=Math.cos(TWO*state.t),si=Math.sin(TWO*state.t);
- const lines=["x_m,y_m,z_m,"+(state.mode==="E"?"E_inst_Vpm":"Poynting_inst_Wpcm2")];
- for(let j=0;j<n;j++)for(let i=0;i<n;i++){
-  const xyz=F.planePoint(prm,axis,(i+.5)/n,(j+.5)/n);
-  lines.push([xyz.x,xyz.y,xyz.z,instantValue(f,j*n+i,co,si,state.mode)].map(x=>Number(x).toPrecision(8)).join(","));
+ const n=state.data.n,prm=params(),co=Math.cos(TWO*state.t),si=Math.sin(TWO*state.t);
+ const valueName=state.mode==="E"?"E_inst_Vpm":"Poynting_inst_Wpcm2";
+ const lines=["plane,x_m,y_m,z_m,"+valueName];
+ for(const axis of ["x","y","z"]){
+  const f=state.data.axes[axis].fields;
+  for(let j=0;j<n;j++)for(let i=0;i<n;i++){
+   const xyz=F.planePoint(prm,axis,(i+.5)/n,(j+.5)/n);
+   lines.push([axis.toUpperCase(),xyz.x,xyz.y,xyz.z,instantValue(f,j*n+i,co,si,state.mode)].map((x,k)=>k===0?x:Number(x).toPrecision(8)).join(","));
+  }
  }
- download(new Blob(["\ufeff",lines.join("\n")],{type:"text/csv;charset=utf-8"}),"WaveLab_3D_"+axis+"_slice.csv");
+ download(new Blob(["\ufeff",lines.join("\n")],{type:"text/csv;charset=utf-8"}),"WaveLab_3D_all_orthogonal_slices.csv");
 }
 bind();renderNodes();updateExtras();drawTrace();initSceneControls();queue();requestAnimationFrame(tick);
 })();</script>
