@@ -319,13 +319,13 @@ function bind(){
  });
  $("studyAxis").addEventListener("change",()=>{
   const axis=$("studyAxis").value;
-  if(!state.studyPlane.active)state.studyPlane.coord=state.cuts[axis];
-  $("studyCoord").value=String(state.studyPlane.coord);
+  state.studyPlane.axis=axis;state.studyPlane.coord=state.cuts[axis];
+  $("studyCoord").value=String(state.studyPlane.coord);updateStudyPlaneTitle();
  });
  $("studyCoord").addEventListener("change",()=>{
   const v=Number($("studyCoord").value);
   if($("studyCoord").value.trim()===""||!Number.isFinite(v)||Math.abs(v)>1e7){$("studyCoord").value=String(state.studyPlane.coord);return;}
-  state.studyPlane.coord=v;
+  // The typed coordinate is applied only after clicking the plane action.
  });
  $("scanSpan").addEventListener("change",()=>{
   const v=Number($("scanSpan").value);
@@ -347,7 +347,7 @@ function bind(){
  window.addEventListener("scroll",hideLens,true);
 }
 function setMode(mode){
- state.mode=mode;$("modeE").classList.toggle("selected",mode==="E");$("modeS").classList.toggle("selected",mode==="S");drawDynamic();
+ state.mode=mode;$("modeE").classList.toggle("selected",mode==="E");$("modeS").classList.toggle("selected",mode==="S");drawDynamic();drawScanPlot();
 }
 const MAX_GRID=1000;
 function samplingPlan(){
@@ -372,14 +372,14 @@ function focusLocal(){
  const lambda=F.C/(state.freq*1e9),windowSize=0.95*MAX_GRID*lambda/state.pointsPerWave;
  state.Lx=Math.min(state.Lx,windowSize);state.Ly=Math.min(state.Ly,windowSize);state.Lz=Math.min(state.Lz,windowSize);
  state.centerX=state.target.x;state.centerY=state.target.y;state.zMin=state.target.z-state.Lz/2;
- state.cuts={...state.target};
+ state.cuts={...state.target};if(state.studyPlane.active)state.cuts[state.studyPlane.axis]=state.studyPlane.coord;
  syncViewInput();queue();
 }
 function restoreOverview(){
  const view=state.savedOverview;
  if(!view)return;
  for(const key of ["Lx","Ly","Lz","zMin","centerX","centerY"])state[key]=view[key];
- state.cuts={...state.target};state.savedOverview=null;
+ state.cuts={...state.target};if(state.studyPlane.active)state.cuts[state.studyPlane.axis]=state.studyPlane.coord;state.savedOverview=null;
  syncViewInput();queue();
 }
 function queue(){
