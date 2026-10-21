@@ -308,7 +308,7 @@ for(const key of ['erx','eix','ery','eiy','hrx','hix','hry','hiy'])fields[key][p
 }}return {n,fields,lam}}
 function atIndex(index,d=state.data){const f=d.fields,p={};for(const key of ['erx','eix','ery','eiy','hrx','hix','hry','hiy'])p[key]=f[key][index];return p}
 function indexAt(x,y,d=state.data){const n=d.n,i=clamp(Math.floor((x/state.Lx+.5)*n),0,n-1),j=clamp(Math.floor((.5-y/state.Ly)*n),0,n-1);return j*n+i;}
-let timer=null;function queue(){clearTimeout(timer);$('status').textContent='准备计算…';$('png').disabled=true;$('csv').disabled=true;timer=setTimeout(compute,130)}
+let timer=null;function queue(){clearTimeout(timer);workerGeneration++;if(activeFieldWorker){activeFieldWorker.terminate();activeFieldWorker=null;}$('status').textContent='准备计算…';$('png').disabled=true;$('csv').disabled=true;timer=setTimeout(compute,130)}
 function finishCompute(d){for(const nd of state.nodes)nd._frame=pointingFrame(nd);state.meanRaster=null;state.data=d;let peakEx=0,maxFlux=0,minFlux=Infinity;
 for(let p=0;p<d.n*d.n;p++){peakEx=Math.max(peakEx,Math.hypot(d.fields.erx[p],d.fields.eix[p]));const v=d.fields.szAvg[p];maxFlux=Math.max(maxFlux,v);minFlux=Math.min(minFlux,v)}
 state.peakEx=Math.max(1e-10,peakEx);state.peakFlux=Math.max(1e-15,maxFlux*2.0);
