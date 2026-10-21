@@ -166,8 +166,8 @@ function complete(data,preview=false){
  $("lambdaValue").textContent=fmt(data.lambda*1e3,2)+" mm";
  drawDynamic();
 }
-const paletteE=[[246,249,251],[205,227,236],[135,194,207],[42,128,157],[27,67,116]];
-const paletteS=[[248,250,251],[206,224,236],[119,184,199],[38,126,155],[20,64,118]];
+const paletteE=[[32,58,178],[39,111,236],[46,188,224],[247,249,251],[255,192,110],[237,76,67],[207,25,62]];
+const paletteS=paletteE;
 function makeColors(p){
  const a=new Uint8Array(768);
  for(let i=0;i<256;i++){
@@ -221,15 +221,6 @@ function drawSlice(axis,raster,scale,withMarkers=true,off){
  }
  ctx.fillText(r.hName+" (m)",X0+SZ/2,Y0+SZ+64);
  ctx.save();ctx.translate(25,Y0+SZ/2);ctx.rotate(-Math.PI/2);ctx.fillText(r.vName+" (m)",0,0);ctx.restore();
- const lut=state.mode==="E"?lutE:lutS,barY=590,barH=16;
- for(let i=0;i<256;i++){
-  ctx.fillStyle="rgb("+lut[i*3]+","+lut[i*3+1]+","+lut[i*3+2]+")";
-  ctx.fillRect(X0+SZ*i/256,barY,SZ/256+1,barH);
- }
- ctx.strokeStyle="#bfcdd4";ctx.strokeRect(X0+.5,barY+.5,SZ,barH);
- ctx.font="18px Arial";ctx.fillStyle="#536d7a";ctx.textAlign="left";ctx.fillText("0",X0,barY+35);
- ctx.textAlign="right";ctx.fillText(sci(scale),X0+SZ,barY+35);
- ctx.textAlign="center";ctx.fillText(state.mode==="E"?"|E(t)|  (V/m)":"|S(t)|  (W/cm²)",X0+SZ/2,barY+61);
  if(!withMarkers)return;
  [["target","#cb864a","T",7],["probe","#315b78","Q",5]].forEach(([key,col,label,rad])=>{
   const pp=F.projectPoint(params(),axis,state[key]);
@@ -254,6 +245,8 @@ function drawDynamic(){
    drawSlice(axis,maps[axis],max);
   }
   state.rasters=maps;state.values=current;state.scale=max;
+  $("scaleMax").textContent=sci(max);
+  $("scaleUnit").textContent=state.mode==="E"?"瞬时电场强度 |E(t)| · V/m":"瞬时功率通量 |S(t)| · W/cm²";
   if(hover){const m=hover;hover=null;showLens(m.axis,m.event);}
  }finally{rendering=false;}
 }
@@ -377,7 +370,7 @@ function download(blob,name){
 }
 function exportPNG(){
  if(!state.data)return;
- const c=document.createElement("canvas"),g=c.getContext("2d");c.width=1960;c.height=940;
+ const c=document.createElement("canvas"),g=c.getContext("2d");c.width=1960;c.height=900;
  g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);
  g.fillStyle="#1e394d";g.font="bold 37px Arial";g.fillText("Wave Lab · 三维空间正交切片",55,62);
  g.fillStyle="#6c8290";g.font="22px Arial";g.fillText("f = "+state.freq+" GHz     t/T = "+fmt(state.t,3)+"     3 × "+state.n+"²     "+(state.mode==="E"?"|E(t)| / V/m":"|S(t)| / W/cm²"),55,103);
@@ -385,8 +378,13 @@ function exportPNG(){
   const x=25+i*645,gapY=158;
   g.fillStyle="#24455a";g.font="bold 25px Arial";
   const r=F.ranges(params(),axis);g.fillText(["(a) YZ","(b) XZ","(c) XY"][i]+"　"+axis+" = "+fmt(state.cuts[axis],2)+" m",x+64,145);
-  g.drawImage($("plot"+axis.toUpperCase()),x,gapY,640,745);
+  g.drawImage($("plot"+axis.toUpperCase()),x,gapY,640,626);
  });
+ const unit=state.mode==="E"?"瞬时电场强度 |E(t)| · V/m":"瞬时功率通量 |S(t)| · W/cm²";
+ g.font="bold 22px Arial";g.fillStyle="#40566a";g.textAlign="center";g.fillText(unit,980,824);
+ const lut=state.mode==="E"?lutE:lutS;
+ for(let i=0;i<256;i++){g.fillStyle="rgb("+lut[3*i]+","+lut[3*i+1]+","+lut[3*i+2]+")";g.fillRect(545+i*870/256,835,870/256+1,19);}
+ g.font="21px Arial";g.fillStyle="#4a6474";g.textAlign="right";g.fillText("0",525,853);g.textAlign="left";g.fillText(sci(state.scale),1430,853);
  c.toBlob(b=>{if(b)download(b,"WaveLab_3D_slices.png");},"image/png");
 }
 function exportCSV(){
