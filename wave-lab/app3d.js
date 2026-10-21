@@ -4,8 +4,8 @@ const $=id=>document.getElementById(id),F=Field3D,PI=Math.PI,TWO=2*PI;
 const colors=["#177e97","#d17d45","#785cba","#2e9a80","#cc5d80","#988249","#5076b1","#668b93"];
 const state={
  freq:10,apX:5,apY:5,eta:.7,n:1000,pointsPerWave:8,centerX:0,centerY:0,savedOverview:null,Lx:50,Ly:50,Lz:60,zMin:0,
- target:{x:0,y:0,z:50},cuts:{x:0,y:0,z:50},
- nodes:[{x:-3,y:-3,z:0,phase:0,power:1},{x:3,y:-3,z:0,phase:0,power:1},{x:-3,y:3,z:0,phase:0,power:1},{x:3,y:3,z:0,phase:0,power:1}],
+ target:{x:0,y:10,z:20},cuts:{x:0,y:10,z:20},
+ nodes:[{x:0,y:25,z:25,phase:-63,power:1},{x:0,y:25,z:-25,phase:-38,power:1},{x:0,y:-25,z:25,phase:-110,power:1},{x:0,y:-25,z:-25,phase:-3,power:1}],
  t:0,playing:false,speed:.5,mode:"E",data:null,rasters:{},scaleFactor:{E:1,S:1},tracePol:0,
  studyPlane:{axis:"x",coord:0,active:false},scanSpan:5,scanAimMode:"track",scanResult:null,coherenceRatio:null
 };
