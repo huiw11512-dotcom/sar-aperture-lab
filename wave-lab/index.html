@@ -308,8 +308,8 @@ for(const key of ['erx','eix','ery','eiy','hrx','hix','hry','hiy'])fields[key][p
 }}return {n,fields,lam}}
 function atIndex(index,d=state.data){const f=d.fields,p={};for(const key of ['erx','eix','ery','eiy','hrx','hix','hry','hiy'])p[key]=f[key][index];return p}
 function indexAt(x,y,d=state.data){const n=d.n,i=clamp(Math.floor((x/state.Lx+.5)*n),0,n-1),j=clamp(Math.floor((.5-y/state.Ly)*n),0,n-1);return j*n+i;}
-let timer=null;function queue(){clearTimeout(timer);$('status').textContent='计算中…';timer=setTimeout(compute,100)}
-function finishCompute(d){state.meanRaster=null;state.data=d;let peakEx=0,maxFlux=0,minFlux=Infinity;
+let timer=null;function queue(){clearTimeout(timer);$('status').textContent='准备计算…';$('png').disabled=true;$('csv').disabled=true;timer=setTimeout(compute,130)}
+function finishCompute(d){for(const nd of state.nodes)nd._frame=pointingFrame(nd);state.meanRaster=null;state.data=d;let peakEx=0,maxFlux=0,minFlux=Infinity;
 for(let p=0;p<d.n*d.n;p++){peakEx=Math.max(peakEx,Math.hypot(d.fields.erx[p],d.fields.eix[p]));const v=d.fields.szAvg[p];maxFlux=Math.max(maxFlux,v);minFlux=Math.min(minFlux,v)}
 state.peakEx=Math.max(1e-10,peakEx);state.peakFlux=Math.max(1e-15,maxFlux*2.0);
 $('lambda').textContent=fmt(d.lam*1000,2)+' mm';$('apPhysical').textContent=fmt(state.apX*d.lam,3)+' × '+fmt(state.apY*d.lam,3)+' m';$('figureH').textContent=fmt(state.H,1);$('mLambda').innerHTML=fmt(d.lam*1000,2)+' <small>mm</small>';$('mGrid').textContent=state.n+'²';
