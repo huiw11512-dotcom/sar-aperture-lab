@@ -6,7 +6,7 @@ const state={
  freq:10,apX:5,apY:5,eta:.7,n:1000,pointsPerWave:8,centerX:0,centerY:0,savedOverview:null,Lx:50,Ly:50,Lz:60,zMin:0,
  target:{x:0,y:0,z:50},cuts:{x:0,y:0,z:50},
  nodes:[{x:-3,y:-3,z:0,phase:0,power:1},{x:3,y:-3,z:0,phase:0,power:1},{x:-3,y:3,z:0,phase:0,power:1},{x:3,y:3,z:0,phase:0,power:1}],
- t:0,playing:false,speed:.5,mode:"E",data:null,rasters:{},tracePol:0
+ t:0,playing:false,speed:.5,mode:"E",data:null,rasters:{},scaleFactor:{E:1,S:1},tracePol:0
 };
 let worker=null,job=0,timer=null,lastTime=0,lastPaint=0,hover=null,rendering=false;
 const fmt=(v,d=2)=>Number(v).toFixed(d);
@@ -68,6 +68,18 @@ function bind(){
  $("randomPhase").addEventListener("click",()=>{state.nodes.forEach(n=>n.phase=Math.round(Math.random()*360-180));renderNodes();queue();});
  $("modeE").addEventListener("click",()=>setMode("E"));
  $("modeS").addEventListener("click",()=>setMode("S"));
+ $("scaleLimit").addEventListener("input",e=>{
+  // Logarithmic control: 0 → 0.1%, 1000 → 100% of automatic maximum.
+  state.scaleFactor[state.mode]=Math.pow(10,3*(Number(e.target.value)/1000-1));
+  recolorOnly();
+ });
+ $("scaleMax").addEventListener("change",e=>{
+  const value=Number(e.target.value),base=state.fixedScales?.[state.mode];
+  if(e.target.value.trim()===""||!Number.isFinite(value)||!(value>0)||!(base>0)){syncColorBar();return;}
+  state.scaleFactor[state.mode]=F.clamp(value/base,1e-8,100);
+  recolorOnly();
+ });
+ $("scaleAuto").addEventListener("click",()=>{state.scaleFactor[state.mode]=1;recolorOnly();});
  $("play").addEventListener("click",()=>{state.playing=!state.playing;$("play").textContent=state.playing?"Ⅱ 暂停":"▶ 播放";lastTime=0;});
  $("reset").addEventListener("click",()=>{state.playing=false;state.t=0;$("play").textContent="▶ 播放";drawDynamic();});
  $("speed").addEventListener("change",()=>state.speed=Number($("speed").value));
@@ -244,22 +256,45 @@ function drawSlice(axis,raster,scale,withMarkers=true,off){
  }
 
 }
+// Display-only color upper bound; this must never alter E/H, phase, Poynting values, or exports.
+function displayMax(){
+ const baseline=state.fixedScales?.[state.mode];
+ if(!(baseline>0))return 1;
+ return Math.max(1e-30,baseline*state.scaleFactor[state.mode]);
+}
+function syncColorBar(){
+ if(!state.fixedScales)return;
+ const ratio=state.scaleFactor[state.mode];
+ const logPosition=1000*(1+Math.log10(F.clamp(ratio,.001,1))/3);
+ $("scaleLimit").value=String(Math.round(F.clamp(logPosition,0,1000)));
+ if(document.activeElement!==$("scaleMax"))$("scaleMax").value=String(Number(displayMax().toPrecision(6)));
+ $("scaleAuto").disabled=Math.abs(ratio-1)<1e-12;
+ $("scaleLimit").setAttribute("aria-valuetext","显示上限 "+sci(displayMax()));
+}
+function recolorOnly(){
+ if(!state.data||!state.values)return;
+ const cap=displayMax(),maps={};
+ for(const axis of F.AXES){
+  const v=state.values[axis];
+  if(!v)continue;
+  maps[axis]=rawRaster(v.vals,cap,v.n);
+  drawSlice(axis,maps[axis],cap);
+ }
+ state.rasters=maps;state.scale=cap;
+ $("scaleUnit").textContent=state.mode==="E"?"瞬时电场强度 |E(t)| · V/m":"瞬时功率通量 |S(t)| · W/cm²";
+ syncColorBar();
+ if(hover){const h=hover;hover=null;showLens(h.axis,h.event);}
+}
 function drawDynamic(){
  $("time").value=state.t;$("timeValue").textContent=fmt(state.t,3)+" T";
  updateExtras();drawTrace();
  if(!state.data||rendering)return;
  rendering=true;
  try{
-  const maps={},current={};const max=state.fixedScales[state.mode];
-  for(const axis of F.AXES){current[axis]=makeValues(axis);}
-  for(const axis of F.AXES){
-   maps[axis]=rawRaster(current[axis].vals,max,current[axis].n);
-   drawSlice(axis,maps[axis],max);
-  }
-  state.rasters=maps;state.values=current;state.scale=max;
-  $("scaleMax").textContent=sci(max);
-  $("scaleUnit").textContent=state.mode==="E"?"瞬时电场强度 |E(t)| · V/m":"瞬时功率通量 |S(t)| · W/cm²";
-  if(hover){const m=hover;hover=null;showLens(m.axis,m.event);}
+  const current={};
+  for(const axis of F.AXES)current[axis]=makeValues(axis);
+  state.values=current;
+  recolorOnly();
  }finally{rendering=false;}
 }
 function updateExtras(){
