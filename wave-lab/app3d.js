@@ -55,7 +55,9 @@ function bind(){
   input.addEventListener("change",()=>{
     const num=Number(input.value);
     if(input.value.trim()===""||!Number.isFinite(num)||Math.abs(num)>1e7){input.value=state.target[axis];return;}
-    state.target[axis]=num;state.cuts={...state.target};queue();
+    state.target[axis]=num;state.cuts={...state.target};
+    if(state.savedOverview){state.centerX=state.target.x;state.centerY=state.target.y;state.zMin=state.target.z-state.Lz/2;syncViewInput();}
+    queue();
   });
  });
  $("pointsPerWave").addEventListener("change",()=>{state.pointsPerWave=Number($("pointsPerWave").value);queue();});
