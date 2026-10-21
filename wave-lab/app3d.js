@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),F=Field3D,PI=Math.PI,TWO=2*PI;
 const colors=["#177e97","#d17d45","#785cba","#2e9a80","#cc5d80","#988249","#5076b1","#668b93"];
 const state={
- freq:10,apX:5,apY:5,eta:.7,n:512,Lx:50,Ly:50,Lz:60,zMin:0,
+ freq:10,apX:5,apY:5,eta:.7,n:1000,pointsPerWave:8,centerX:0,centerY:0,savedOverview:null,Lx:50,Ly:50,Lz:60,zMin:0,
  target:{x:0,y:0,z:50},probe:{x:0,y:0,z:50},cuts:{x:0,y:0,z:50},
  nodes:[{x:-3,y:-3,z:0,phase:0,power:1},{x:3,y:-3,z:0,phase:0,power:1},{x:-3,y:3,z:0,phase:0,power:1},{x:3,y:3,z:0,phase:0,power:1}],
  t:0,playing:false,speed:.5,mode:"E",data:null,rasters:{},tracePol:0
@@ -14,7 +14,7 @@ const sci=v=>(Math.abs(v)>=.01&&Math.abs(v)<1000)?Number(v).toFixed(3):Number(v)
 const escapeHTML=x=>String(x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function params(){
  return {freq:state.freq,apX:state.apX,apY:state.apY,eta:state.eta,nodes:state.nodes.map(s=>({...s})),
-  target:{...state.target},cuts:{...state.cuts},Lx:state.Lx,Ly:state.Ly,Lz:state.Lz,zMin:state.zMin};
+  target:{...state.target},cuts:{...state.cuts},centerX:state.centerX,centerY:state.centerY,Lx:state.Lx,Ly:state.Ly,Lz:state.Lz,zMin:state.zMin};
 }
 function layoutNodes(count){
  const old=state.nodes.slice();
@@ -61,7 +61,9 @@ function bind(){
     updateExtras();
    }));
  });
- $("resolution").addEventListener("change",()=>{state.n=Number($("resolution").value);queue();});
+ $("pointsPerWave").addEventListener("change",()=>{state.pointsPerWave=Number($("pointsPerWave").value);queue();});
+ $("localDetail").addEventListener("click",focusLocal);
+ $("restoreOverview").addEventListener("click",restoreOverview);
  $("count").addEventListener("change",()=>layoutNodes(Number($("count").value)));
  $("equalPhase").addEventListener("click",()=>{state.nodes.forEach(n=>n.phase=0);renderNodes();queue();});
  $("randomPhase").addEventListener("click",()=>{state.nodes.forEach(n=>n.phase=Math.round(Math.random()*360-180));renderNodes();queue();});
@@ -93,8 +95,46 @@ function syncProbeInputs(){
 function setMode(mode){
  state.mode=mode;$("modeE").classList.toggle("selected",mode==="E");$("modeS").classList.toggle("selected",mode==="S");drawDynamic();
 }
+const MAX_GRID=1000;
+const prettyCount=x=>new Intl.NumberFormat("zh-CN",{notation:"compact",maximumFractionDigits:2}).format(x);
+function samplingPlan(){
+ const lambda=F.C/(state.freq*1e9),step=lambda/state.pointsPerWave;
+ const dims={x:Math.ceil(state.Lx/step),y:Math.ceil(state.Ly/step),z:Math.ceil(state.Lz/step)};
+ const demanded=Math.max(...Object.values(dims));
+ const total=dims.y*dims.z+dims.x*dims.z+dims.x*dims.y;
+ return {lambda,step,dims,demanded,total,n:Math.max(64,Math.min(MAX_GRID,demanded)),limited:demanded>MAX_GRID};
+}
+function updateSampling(){
+ const p=samplingPlan();state.n=p.n;
+ $("sampleInfo").textContent="λ "+fmt(p.lambda*1e3,2)+" mm · 自动 "+p.n+"² × 3";
+ const demandedText=prettyCount(p.total),actualText=prettyCount(3*p.n*p.n);
+ $("resolutionSummary").textContent="按 "+state.pointsPerWave+" 点/λ：理论 "+demandedText+" 点 · 本次 "+actualText+" 点";
+ $("sampleWarning").style.display=p.limited?"block":"none";
+ $("sampleWarning").textContent=p.limited?"全域采样超过浏览器预算；当前为降采样概览，细节与峰值不保证收敛。请使用「局部精细查看」。":"";
+ $("restoreOverview").disabled=!state.savedOverview;
+ return p;
+}
+function syncViewInput(){
+ for(const key of ["Lx","Ly","Lz","zMin"])$(key).value=Number(state[key].toFixed(6));
+ for(const axis of F.AXES)$("cut"+axis.toUpperCase()).value=Number(state.cuts[axis].toFixed(6));
+}
+function focusLocal(){
+ if(!state.savedOverview)state.savedOverview={Lx:state.Lx,Ly:state.Ly,Lz:state.Lz,zMin:state.zMin,centerX:state.centerX,centerY:state.centerY,cuts:{...state.cuts}};
+ const lambda=F.C/(state.freq*1e9),windowSize=0.95*MAX_GRID*lambda/state.pointsPerWave;
+ state.Lx=Math.min(state.Lx,windowSize);state.Ly=Math.min(state.Ly,windowSize);state.Lz=Math.min(state.Lz,windowSize);
+ state.centerX=state.probe.x;state.centerY=state.probe.y;state.zMin=state.probe.z-state.Lz/2;
+ state.cuts={...state.probe};
+ syncViewInput();queue();
+}
+function restoreOverview(){
+ const view=state.savedOverview;
+ if(!view)return;
+ for(const key of ["Lx","Ly","Lz","zMin","centerX","centerY"])state[key]=view[key];
+ state.cuts={...view.cuts};state.savedOverview=null;
+ syncViewInput();queue();
+}
 function queue(){
- clearTimeout(timer);++job;
+ updateSampling();clearTimeout(timer);++job;
  if(worker){worker.terminate();worker=null;}
  $("status").textContent="准备计算…";$("exportPNG").disabled=true;$("exportCSV").disabled=true;
  timer=setTimeout(compute,160);
@@ -233,19 +273,17 @@ function updateExtras(){
  if(state.data){
   const p=params(),point=F.fieldAt(p,q),sample=F.instantaneous(point,state.t);
   $("probeInfo").innerHTML="<span><strong>|E|</strong> "+sci(sample.E)+" V/m</span><span><strong>|S|</strong> "+sci(sample.S)+" W/cm²</span>";
-  const wl=state.data.lambda,base=Math.min(state.Lx,state.Ly,state.Lz)/state.n;
-  $("sampleWarning").textContent=base>wl/2?"空间步长约 "+fmt(base*100,2)+" cm，可能漏采细密条纹；建议缩小范围或增加网格。":"";
-  $("sampleWarning").style.display=base>wl/2?"block":"none";
+  // Sampling budget is explained once by updateSampling(), not overwritten every animation frame.
  }
 }
 function iso(p){
- const nx=p.x/state.Lx,ny=p.y/state.Ly,nz=(p.z-state.zMin)/state.Lz-.5;
+ const nx=(p.x-state.centerX)/state.Lx,ny=(p.y-state.centerY)/state.Ly,nz=(p.z-state.zMin)/state.Lz-.5;
  return {x:325+185*nx-145*ny,y:139+76*nx+65*ny-171*nz};
 }
 function svgPath(arr){return arr.map((p,i)=>(i?"L":"M")+p.x.toFixed(1)+","+p.y.toFixed(1)).join(" ")+"Z";}
 function renderScene(){
  const svg=$("scene3d");if(!svg)return;
- const z0=state.zMin,z1=z0+state.Lz,x0=-state.Lx/2,x1=state.Lx/2,y0=-state.Ly/2,y1=state.Ly/2;
+ const z0=state.zMin,z1=z0+state.Lz,x0=state.centerX-state.Lx/2,x1=state.centerX+state.Lx/2,y0=state.centerY-state.Ly/2,y1=state.centerY+state.Ly/2;
  const pts=[];for(const x of [x0,x1])for(const y of [y0,y1])for(const z of [z0,z1])pts.push({x,y,z});
  let html='<g fill="none" stroke="#ccdae2" stroke-width="1.2">';
  for(let a=0;a<pts.length;a++)for(let b=a+1;b<pts.length;b++){
