@@ -114,7 +114,7 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
 .scene-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .scene-heading h2{margin:0 0 13px;font-size:19px}
 #studyPlaneTitle{font-size:15px;font-weight:650;color:#436678;margin-bottom:13px}
-.study-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:6px 0 22px}
+.study-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:6px 0 22px}
 .study-metric{border:1px solid #dce7eb;background:#fbfdfe;border-radius:11px;padding:15px;min-width:0}
 .study-metric label{font-size:14px;color:#526f80;margin-bottom:8px}
 .study-metric strong{display:block;font-size:22px;line-height:1.3;font-weight:780;color:#173f55;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
@@ -201,8 +201,10 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
  <section class="card panel study-panel">
   <div class="scene-heading"><h2>共面干涉分析</h2><div id="studyPlaneTitle">YZ 平面 · x = 0 m</div></div>
   <div class="study-metrics">
-   <div class="study-metric"><label>目标点瞬时电场</label><strong id="targetEStat">—</strong><span>V/m</span></div>
-   <div class="study-metric"><label>目标点瞬时功率通量</label><strong id="targetSStat">—</strong><span>W/cm²</span></div>
+   <div class="study-metric"><label>目标点瞬时电场</label><strong id="targetEStat">—</strong><span>V/m · 当前周期时刻</span></div>
+   <div class="study-metric"><label>目标点周期最大电场</label><strong id="targetEMaxStat">—</strong><span>V/m · 一个完整周期内最大值</span></div>
+   <div class="study-metric"><label>目标点瞬时功率通量</label><strong id="targetSStat">—</strong><span>W/cm² · 当前周期时刻</span></div>
+   <div class="study-metric"><label>目标点周期最大功率通量</label><strong id="targetSMaxStat">—</strong><span>W/cm² · 一个完整周期内最大值</span></div>
    <div class="study-metric"><label>目标点相干合成比</label><strong id="coherenceStat">—</strong><span id="coherenceSub">参考：各节点电场相量模平方之和</span></div>
    <div class="study-metric"><label id="planeRangeLabel">当前平面场值范围</label><strong id="planeRangeStat">—</strong><span id="planeRangeSub">—</span></div>
   </div>
@@ -560,11 +562,30 @@ function updateStudyPlaneTitle(){
  $("planeRangeLabel").textContent="当前"+names[axis]+"截面 "+(state.mode==="E"?"电场最小 / 最大":"功率通量最小 / 最大");
  $("scanFieldTitle").textContent=state.mode==="E"?"目标穿面瞬时电场 |E(t)|":"目标穿面瞬时功率通量 |S(t)|";
 }
+let targetCycleCache={key:"",Emax:NaN,Smax:NaN};
+function updateTargetCycleMaximum(prm){
+ const key=JSON.stringify({freq:prm.freq,apX:prm.apX,apY:prm.apY,eta:prm.eta,target:prm.target,nodes:prm.nodes});
+ if(targetCycleCache.key===key)return targetCycleCache;
+ const phasor=F.fieldAt(prm,prm.target);
+ let Emax=0,Smax=0;
+ // Sample one complete RF period densely; t is normalized to cycles [0,1).
+ const samples=4096;
+ for(let i=0;i<samples;i++){
+  const value=F.instantaneous(phasor,i/samples);
+  if(value.E>Emax)Emax=value.E;
+  if(value.S>Smax)Smax=value.S;
+ }
+ targetCycleCache={key,Emax,Smax};
+ return targetCycleCache;
+}
 function updateStudyReadouts(){
  if(!state.data)return;
- const inst=F.instantaneous(F.fieldAt(params(),state.target),state.t);
+ const prm=params(),phasor=F.fieldAt(prm,state.target),inst=F.instantaneous(phasor,state.t);
+ const cycle=updateTargetCycleMaximum(prm);
  $("targetEStat").textContent=sci(inst.E);
+ $("targetEMaxStat").textContent=sci(cycle.Emax);
  $("targetSStat").textContent=sci(inst.S);
+ $("targetSMaxStat").textContent=sci(cycle.Smax);
  updateStudyPlaneTitle();
  const axis=selectedStudyAxis(),view=state.values&&state.values[axis];
  if(!view||!view.vals.length)return;
