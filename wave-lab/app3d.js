@@ -107,9 +107,10 @@ function compute(){
   worker=new Worker("./worker3d.js");
   worker.onmessage=e=>{
    if(token!==job)return;
-   const a=e.data;worker.terminate();worker=null;
-   if(!a.ok){$("status").textContent="后台计算失败";return;}
-   complete(a.result);
+   const a=e.data;
+   if(!a.ok){worker.terminate();worker=null;$("status").textContent="后台计算失败";return;}
+   if(a.preview){complete(a.result,true);return;}
+   worker.terminate();worker=null;complete(a.result,false);
   };
   worker.onerror=e=>{if(token!==job)return;worker.terminate();worker=null;$("status").textContent="后台计算失败";};
   worker.postMessage({params:prm,n:state.n,token:token});
@@ -118,9 +119,10 @@ function compute(){
   setTimeout(()=>{if(token===job)try{complete(F.compute(prm,state.n));}catch(e){$("status").textContent="计算错误";}},30);
  }
 }
-function complete(data){
+function complete(data,preview=false){
  state.data=data;state.rasters={};
- $("status").textContent="计算完成";$("exportPNG").disabled=false;$("exportCSV").disabled=false;
+ $("status").textContent=preview?"已显示预览 · 高清计算中":"计算完成";
+ $("exportPNG").disabled=preview;$("exportCSV").disabled=preview;
  $("lambdaValue").textContent=fmt(data.lambda*1e3,2)+" mm";
  drawDynamic();
 }
