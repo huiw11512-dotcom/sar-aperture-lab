@@ -263,41 +263,93 @@ function drawDynamic(){
 function updateExtras(){
  for(const a of F.AXES)$("label"+a.toUpperCase()).textContent=a+" = "+fmt(state.target[a],2)+" m";
 }
+// Orbit camera affects only the 3-D view; it never recomputes the electromagnetic field.
+const camera={yaw:-.62,pitch:.63,zoom:1};
+function cameraBasis(x,y,z){
+ const cy=Math.cos(camera.yaw),sy=Math.sin(camera.yaw);
+ const rx=cy*x-sy*y,ry=sy*x+cy*y;
+ return {x:rx,y:Math.sin(camera.pitch)*ry-Math.cos(camera.pitch)*z};
+}
 function iso(p){
  const nx=(p.x-state.centerX)/state.Lx,ny=(p.y-state.centerY)/state.Ly,nz=(p.z-state.zMin)/state.Lz-.5;
- return {x:325+185*nx-145*ny,y:139+76*nx+65*ny-171*nz};
+ const v=cameraBasis(nx,ny,nz),s=170*camera.zoom;
+ return {x:325+s*v.x,y:138+s*v.y};
 }
 function svgPath(arr){return arr.map((p,i)=>(i?"L":"M")+p.x.toFixed(1)+","+p.y.toFixed(1)).join(" ")+"Z";}
+function axisGizmo(){
+ const ox=564,oy=217,L=36,cs=[["X",1,0,0,"#cf5555"],["Y",0,1,0,"#299d80"],["Z",0,0,1,"#397cda"]];
+ let out='<g role="img" aria-label="视角坐标轴：X 红色、Y 绿色、Z 蓝色"><rect x="497" y="155" width="146" height="113" rx="13" fill="#fff" fill-opacity=".92" stroke="#d5e1e8"/>';
+ out+='<circle cx="'+ox+'" cy="'+oy+'" r="3.5" fill="#425d6b"/>';
+ for(const [name,x,y,z,color] of cs){
+  const dir=cameraBasis(x,y,z),ex=ox+L*dir.x,ey=oy+L*dir.y,mag=Math.hypot(ex-ox,ey-oy)||1;
+  const px=-(ey-oy)/mag,py=(ex-ox)/mag;
+  out+='<path d="M'+ox+','+oy+' L'+ex.toFixed(2)+','+ey.toFixed(2)+'" stroke="'+color+'" stroke-width="3.1" stroke-linecap="round"/>';
+  out+='<path d="M'+ex.toFixed(2)+','+ey.toFixed(2)+' l'+(-7*(ex-ox)/mag+3*px).toFixed(2)+','+(-7*(ey-oy)/mag+3*py).toFixed(2)+' M'+ex.toFixed(2)+','+ey.toFixed(2)+' l'+(-7*(ex-ox)/mag-3*px).toFixed(2)+','+(-7*(ey-oy)/mag-3*py).toFixed(2)+'" stroke="'+color+'" stroke-width="2" fill="none"/>';
+  out+='<text x="'+(ex+10*dir.x).toFixed(2)+'" y="'+(ey+10*dir.y+5).toFixed(2)+'" fill="'+color+'" font-size="17" font-weight="800" text-anchor="middle">'+name+'</text>';
+ }
+ return out+'</g>';
+}
 function renderScene(){
  const svg=$("scene3d");if(!svg)return;
  const z0=state.zMin,z1=z0+state.Lz,x0=state.centerX-state.Lx/2,x1=state.centerX+state.Lx/2,y0=state.centerY-state.Ly/2,y1=state.centerY+state.Ly/2;
  const pts=[];for(const x of [x0,x1])for(const y of [y0,y1])for(const z of [z0,z1])pts.push({x,y,z});
- let html='<g fill="none" stroke="#ccdae2" stroke-width="1.2">';
+ let html='<g fill="none" stroke="#bacdd8" stroke-width="1.5">';
  for(let a=0;a<pts.length;a++)for(let b=a+1;b<pts.length;b++){
   const p=pts[a],q=pts[b],changes=["x","y","z"].filter(k=>p[k]!==q[k]).length;
   if(changes===1){const u=iso(p),v=iso(q);html+='<path d="M'+u.x+','+u.y+'L'+v.x+','+v.y+'"/>';}
  }
  html+='</g>';
  const planeCorners={
-  x:[{x:state.cuts.x,y:y0,z:z0},{x:state.cuts.x,y:y1,z:z0},{x:state.cuts.x,y:y1,z:z1},{x:state.cuts.x,y:y0,z:z1}],
-  y:[{x:x0,y:state.cuts.y,z:z0},{x:x1,y:state.cuts.y,z:z0},{x:x1,y:state.cuts.y,z:z1},{x:x0,y:state.cuts.y,z:z1}],
-  z:[{x:x0,y:y0,z:state.cuts.z},{x:x1,y:y0,z:state.cuts.z},{x:x1,y:y1,z:state.cuts.z},{x:x0,y:y1,z:state.cuts.z}]
+  x:[{x:state.target.x,y:y0,z:z0},{x:state.target.x,y:y1,z:z0},{x:state.target.x,y:y1,z:z1},{x:state.target.x,y:y0,z:z1}],
+  y:[{x:x0,y:state.target.y,z:z0},{x:x1,y:state.target.y,z:z0},{x:x1,y:state.target.y,z:z1},{x:x0,y:state.target.y,z:z1}],
+  z:[{x:x0,y:y0,z:state.target.z},{x:x1,y:y0,z:state.target.z},{x:x1,y:y1,z:state.target.z},{x:x0,y:y1,z:state.target.z}]
  };
- const planeColors={x:"#42adbc",y:"#7b8dc9",z:"#ddb16d"};
+ const planeColors={x:"#44a8bb",y:"#7a8acd",z:"#deab62"};
  for(const ax of F.AXES){
-  const c=planeCorners[ax],lo=ax==="z"?z0:ax==="x"?x0:y0,hi=ax==="z"?z1:ax==="x"?x1:y1;
-  if(state.cuts[ax]<lo||state.cuts[ax]>hi)continue;
-  html+='<path d="'+svgPath(c.map(iso))+'" fill="'+planeColors[ax]+'" fill-opacity=".12" stroke="'+planeColors[ax]+'" stroke-width="1.4"/>';
+  const lo=ax==="z"?z0:ax==="x"?x0:y0,hi=ax==="z"?z1:ax==="x"?x1:y1;
+  if(state.target[ax]<lo||state.target[ax]>hi)continue;
+  html+='<path d="'+svgPath(planeCorners[ax].map(iso))+'" fill="'+planeColors[ax]+'" fill-opacity=".14" stroke="'+planeColors[ax]+'" stroke-width="1.7"/>';
  }
- const T=iso(state.target),Q=iso(state.probe);
+ const T=iso(state.target);
  state.nodes.forEach((node,i)=>{
-  const a=iso(node);html+='<path d="M'+a.x+','+a.y+'L'+T.x+','+T.y+'" stroke="#c7a480" opacity=".42" stroke-dasharray="4 5"/>';
-  html+='<circle cx="'+a.x+'" cy="'+a.y+'" r="6" fill="'+colors[i%colors.length]+'" stroke="white" stroke-width="2"/><text x="'+(a.x+9)+'" y="'+(a.y-7)+'" font-size="13" fill="#466070">N'+(i+1)+'</text>';
+  const a=iso(node);html+='<path d="M'+a.x+','+a.y+'L'+T.x+','+T.y+'" stroke="#c7a480" opacity=".36" stroke-dasharray="4 5"/>';
+  html+='<circle cx="'+a.x+'" cy="'+a.y+'" r="6" fill="'+colors[i%colors.length]+'" stroke="white" stroke-width="2"/><text x="'+(a.x+10)+'" y="'+(a.y-8)+'" font-size="15" font-weight="600" fill="#476779">N'+(i+1)+'</text>';
  });
- html+='<circle cx="'+T.x+'" cy="'+T.y+'" r="7" fill="#d38b44" stroke="white" stroke-width="2"/><text x="'+(T.x+11)+'" y="'+(T.y-9)+'" font-size="15" font-weight="700" fill="#a97038">T</text>';
- html+='<circle cx="'+Q.x+'" cy="'+Q.y+'" r="5" fill="#315d76" stroke="white" stroke-width="2"/><text x="'+(Q.x+9)+'" y="'+(Q.y+15)+'" font-size="14" font-weight="700" fill="#315d76">Q</text>';
- 
- svg.innerHTML=html;
+ html+='<circle cx="'+T.x+'" cy="'+T.y+'" r="8" fill="#d28a43" stroke="white" stroke-width="2.5"/><text x="'+(T.x+11)+'" y="'+(T.y-10)+'" font-size="17" font-weight="800" fill="#ae7031">T</text>';
+ svg.innerHTML=html+axisGizmo();
+}
+function initSceneControls(){
+ const svg=$("scene3d");let dragging=false,prevX=0,prevY=0;
+ svg.addEventListener("pointerdown",e=>{
+  if(e.button!==undefined&&e.button!==0)return;
+  dragging=true;prevX=e.clientX;prevY=e.clientY;svg.classList.add("dragging");svg.setPointerCapture?.(e.pointerId);e.preventDefault?.();
+ });
+ svg.addEventListener("pointermove",e=>{
+  if(!dragging)return;
+  const dx=e.clientX-prevX,dy=e.clientY-prevY;prevX=e.clientX;prevY=e.clientY;
+  camera.yaw+=dx*.010;camera.pitch+=dy*.010;
+  renderScene();
+ });
+ function endDrag(e){dragging=false;svg.classList.remove("dragging");if(e?.pointerId!==undefined&&svg.hasPointerCapture?.(e.pointerId))svg.releasePointerCapture?.(e.pointerId);}
+ svg.addEventListener("pointerup",endDrag);
+ svg.addEventListener("pointercancel",endDrag);
+ svg.addEventListener("lostpointercapture",()=>{dragging=false;svg.classList.remove("dragging");});
+ svg.addEventListener("wheel",e=>{
+  e.preventDefault?.();
+  camera.zoom=F.clamp(camera.zoom*Math.exp(-e.deltaY*.0015),.4,5);
+  renderScene();
+ },{passive:false});
+ svg.addEventListener("keydown",e=>{
+  if(e.key==="ArrowLeft")camera.yaw-=.12;
+  else if(e.key==="ArrowRight")camera.yaw+=.12;
+  else if(e.key==="ArrowUp")camera.pitch-=.12;
+  else if(e.key==="ArrowDown")camera.pitch+=.12;
+  else if(e.key==="+")camera.zoom=F.clamp(camera.zoom*1.15,.4,5);
+  else if(e.key==="-")camera.zoom=F.clamp(camera.zoom/1.15,.4,5);
+  else return;
+  e.preventDefault?.();renderScene();
+ });
+ $("resetView").addEventListener("click",()=>{camera.yaw=-.62;camera.pitch=.63;camera.zoom=1;renderScene();});
 }
 function plotUV(canvas,e){
  const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width*580,y=(e.clientY-rect.top)/rect.height*568;
