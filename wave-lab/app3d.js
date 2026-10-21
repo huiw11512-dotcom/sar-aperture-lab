@@ -692,7 +692,7 @@ function showLens(axis,e){
  $("lensReading").textContent="瞬时值："+sci(current)+unit;
  $("lensMaxReading").textContent="周期最大值："+sci(cycleMax)+unit;
  const div=$("lens");div.classList.add("show");div.setAttribute("aria-hidden","false");
- const W=244,H=354;
+ const W=270,H=392;
  let left=e.clientX+17,top=e.clientY+15;
  if(left+W>window.innerWidth-5)left=e.clientX-W-17;
  if(top+H>window.innerHeight-5)top=e.clientY-H-17;
