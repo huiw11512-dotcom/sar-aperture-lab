@@ -62,9 +62,9 @@ function updateTargetCoherence(){
  }else{
   $("coherenceStat").textContent=(ratio*100).toFixed(1)+"%";
   $("coherenceSub").textContent=ratio<.999
-   ?"相消："+((1-ratio)*100).toFixed(1)+"%（相对单节点功率和）"
+   ?"相消："+((1-ratio)*100).toFixed(1)+"%（相对各节点电场相量模平方之和）"
    :ratio>1.001
-    ?"相长："+((ratio-1)*100).toFixed(1)+"%（相对单节点功率和）"
+    ?"相长："+((ratio-1)*100).toFixed(1)+"%（相对各节点电场相量模平方之和）"
     :"接近单节点功率和";
  }
 }
