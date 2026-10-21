@@ -309,11 +309,70 @@ for(const key of ['erx','eix','ery','eiy','hrx','hix','hry','hiy'])fields[key][p
 function atIndex(index,d=state.data){const f=d.fields,p={};for(const key of ['erx','eix','ery','eiy','hrx','hix','hry','hiy'])p[key]=f[key][index];return p}
 function indexAt(x,y,d=state.data){const n=d.n,i=clamp(Math.floor((x/state.Lx+.5)*n),0,n-1),j=clamp(Math.floor((.5-y/state.Ly)*n),0,n-1);return j*n+i;}
 let timer=null;function queue(){clearTimeout(timer);$('status').textContent='计算中…';timer=setTimeout(compute,100)}
-function compute(){state.meanRaster=null;const d=computeData(state.n);state.data=d;let peakEx=0,maxFlux=0,minFlux=Infinity;
+function finishCompute(d){state.meanRaster=null;state.data=d;let peakEx=0,maxFlux=0,minFlux=Infinity;
 for(let p=0;p<d.n*d.n;p++){peakEx=Math.max(peakEx,Math.hypot(d.fields.erx[p],d.fields.eix[p]));const v=d.fields.szAvg[p];maxFlux=Math.max(maxFlux,v);minFlux=Math.min(minFlux,v)}
 state.peakEx=Math.max(1e-10,peakEx);state.peakFlux=Math.max(1e-15,maxFlux*2.0);
 $('lambda').textContent=fmt(d.lam*1000,2)+' mm';$('apPhysical').textContent=fmt(state.apX*d.lam,3)+' × '+fmt(state.apY*d.lam,3)+' m';$('figureH').textContent=fmt(state.H,1);$('mLambda').innerHTML=fmt(d.lam*1000,2)+' <small>mm</small>';$('mGrid').textContent=state.n+'²';
-sampleCheck();drawFigure($('mean'),2,true);dynamic();$('status').textContent='计算完成';
+sampleCheck();drawFigure($('mean'),2,true);dynamic();$('status').textContent='计算完成';$('png').disabled=false;$('csv').disabled=false;
+}
+// Run high-resolution field integration off the UI thread. A new worker cancels stale jobs.
+let activeFieldWorker=null,workerGeneration=0,fieldWorkerURL=null;
+function makeFieldWorkerURL(){
+  if(fieldWorkerURL)return fieldWorkerURL;
+  const body=`'use strict';
+    const TWO=2*Math.PI,C=299792458,Z0=376.730313668;
+    const radians=${radians.toString()};
+    const sinc=${sinc.toString()};
+    const meanFlux=${meanFlux.toString()};
+    let state=null;
+    ${pointingFrame.toString()}
+    ${addSource.toString()}
+    ${emptyAcc.toString()}
+    ${computeData.toString()}
+    self.onmessage=ev=>{
+      try{
+        state=ev.data.params;
+        const data=computeData(state.n);
+        const transfer=Object.values(data.fields).map(a=>a.buffer);
+        self.postMessage({ok:true,data},transfer);
+      }catch(e){self.postMessage({ok:false,error:String(e)});}
+    };
+  `;
+  fieldWorkerURL=URL.createObjectURL(new Blob([body],{type:'text/javascript'}));
+  return fieldWorkerURL;
+}
+function compute(){
+  const generation=++workerGeneration;
+  if(activeFieldWorker){activeFieldWorker.terminate();activeFieldWorker=null;}
+  $('png').disabled=true;$('csv').disabled=true;
+  $('status').textContent='正在计算 '+state.n+'² …';
+  const params={freq:state.freq,H:state.H,Lx:state.Lx,Ly:state.Ly,apX:state.apX,apY:state.apY,eta:state.eta,
+    tx:state.tx,ty:state.ty,tz:state.tz,n:state.n,
+    nodes:state.nodes.map(nd=>({x:nd.x,y:nd.y,phase:nd.phase,power:nd.power}))};
+  if(typeof Worker==='undefined'){
+    finishCompute(computeData(state.n));return;
+  }
+  try{
+    const w=new Worker(makeFieldWorkerURL());
+    activeFieldWorker=w;
+    w.onmessage=e=>{
+      if(generation!==workerGeneration)return;
+      w.terminate();activeFieldWorker=null;
+      if(!e.data.ok){$('status').textContent='后台计算异常，正在切换';setTimeout(()=>finishCompute(computeData(state.n)),20);return;}
+      finishCompute(e.data.data);
+    };
+    w.onerror=e=>{
+      if(generation!==workerGeneration)return;
+      w.terminate();activeFieldWorker=null;
+      $('status').textContent='切换兼容计算中…';
+      setTimeout(()=>finishCompute(computeData(state.n)),20);
+    };
+    w.postMessage({params});
+  }catch(e){
+    if(activeFieldWorker)activeFieldWorker.terminate();
+    activeFieldWorker=null;
+    setTimeout(()=>finishCompute(computeData(state.n)),20);
+  }
 }
 function sampleCheck(){const l=state.data.lam,nd=state.nodes;let maxDu=0,maxDv=0;
 for(const [x,y] of [[0,0],[-state.Lx/2,-state.Ly/2],[state.Lx/2,state.Ly/2],[-state.Lx/2,state.Ly/2],[state.Lx/2,-state.Ly/2]]){const uv=nd.map(q=>{const dx=x-q.x,dy=y-q.y,r=Math.hypot(dx,dy,state.H);return [dx/r,dy/r]});for(let a=0;a<uv.length;a++)for(let b=a+1;b<uv.length;b++){maxDu=Math.max(maxDu,Math.abs(uv[a][0]-uv[b][0]));maxDv=Math.max(maxDv,Math.abs(uv[a][1]-uv[b][1]));}}
