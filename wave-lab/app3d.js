@@ -7,7 +7,7 @@ const state={
  target:{x:0,y:0,z:50},cuts:{x:0,y:0,z:50},
  nodes:[{x:-3,y:-3,z:0,phase:0,power:1},{x:3,y:-3,z:0,phase:0,power:1},{x:-3,y:3,z:0,phase:0,power:1},{x:3,y:3,z:0,phase:0,power:1}],
  t:0,playing:false,speed:.5,mode:"E",data:null,rasters:{},scaleFactor:{E:1,S:1},tracePol:0,
- studyPlane:{axis:"x",coord:0,active:false},scanSpan:5,scanResult:null,coherenceRatio:null
+ studyPlane:{axis:"x",coord:0,active:false},scanSpan:5,scanAimMode:"track",scanResult:null,coherenceRatio:null
 };
 let worker=null,job=0,timer=null,lastTime=0,lastPaint=0,hover=null,rendering=false;
 const fmt=(v,d=2)=>Number(v).toFixed(d);
@@ -110,7 +110,8 @@ function readStudyControls(){
  if($("studyCoord").value.trim()===""||!Number.isFinite(coord)||Math.abs(coord)>1e7)throw Error("平面位置必须是有效的米制坐标。");
  if($("scanSpan").value.trim()===""||!Number.isFinite(span)||span<.1||span>1000)throw Error("穿面半宽范围为 0.1–1000 λ。");
  state.scanSpan=span;
- return {axis,coord,span};
+ const aimMode=$("scanAimMode").value;if(!["track","fixed"].includes(aimMode))throw Error("请选择天线朝向模式。");state.scanAimMode=aimMode;
+ return {axis,coord,span,aimMode};
 }
 function activateStudyPlane(plane,shouldQueue=true){
  const changed=!state.studyPlane.active||state.studyPlane.axis!==plane.axis||Math.abs(state.cuts[plane.axis]-plane.coord)>1e-10;
@@ -189,7 +190,7 @@ function drawScanPlot(){
  drawLineChart(c2,points,"ratioPct",{span:r.span,color:"#d9434e",reference:100,formatY:v=>v.toFixed(0)+"%",yLabel:"矢量相干合成比 / %"});
  let lo=0,hi=0;for(let i=1;i<points.length;i++){if(points[i][key]<points[lo][key])lo=i;if(points[i][key]>points[hi][key])hi=i;}
  let rMin=Infinity,rMax=-Infinity;for(const p of points){rMin=Math.min(rMin,p.ratioPct);rMax=Math.max(rMax,p.ratioPct);}
- $("scanSummary").textContent="穿面方向 "+r.axis.toUpperCase()+" · 峰值 "+sci(points[hi][key])+" "+unit+"（"+fmt(points[hi].offsetLambda,2)+" λ）· 谷值 "+sci(points[lo][key])+" "+unit+"（"+fmt(points[lo].offsetLambda,2)+" λ）· 相干比 "+fmt(rMin,1)+"%–"+fmt(rMax,1)+"% · 扫描时刻 t/T="+fmt(r.t,3);
+ $("scanSummary").textContent="穿面方向 "+r.axis.toUpperCase()+" · 峰值 "+sci(points[hi][key])+" "+unit+"（"+fmt(points[hi].offsetLambda,2)+" λ）· 谷值 "+sci(points[lo][key])+" "+unit+"（"+fmt(points[lo].offsetLambda,2)+" λ）· 相干比 "+fmt(rMin,1)+"%–"+fmt(rMax,1)+"% · "+(r.aimMode==="track"?"节点随目标跟踪":"节点保持当前朝向")+" · t/T="+fmt(r.t,3);
  $("exportScan").disabled=false;
 }
 function scanThroughPlane(){
@@ -199,12 +200,13 @@ function scanThroughPlane(){
  for(let i=0;i<count;i++){
   const offset=-plane.span+2*plane.span*i/(count-1),coordinate=plane.coord+offset*lambda;
   const xyz={...state.target,[plane.axis]:coordinate},prm={...base,target:xyz};
-  const total=F.fieldAt(prm,xyz),inst=F.instantaneous(total,state.t);let reference=0;
-  for(let k=0;k<state.nodes.length;k++)reference+=ePhasorPower(F.fieldAt(prm,xyz,k));
+  const aimTarget=plane.aimMode==="track"?xyz:base.target;
+  const total=F.fieldAtAimed(prm,xyz,aimTarget),inst=F.instantaneous(total,state.t);let reference=0;
+  for(let k=0;k<state.nodes.length;k++)reference+=ePhasorPower(F.fieldAtAimed(prm,xyz,aimTarget,k));
   const ratio=reference>1e-30?ePhasorPower(total)/reference:0;
   points.push({offsetLambda:offset,coordinate,E:inst.E,S:inst.S,ratio});
  }
- state.scanResult={axis:plane.axis,coord:plane.coord,span:plane.span,lambda,t:state.t,points};drawScanPlot();
+ state.scanResult={axis:plane.axis,coord:plane.coord,span:plane.span,lambda,t:state.t,aimMode:plane.aimMode,points};drawScanPlot();
 }
 function exportScanCSV(){
  if(!state.scanResult)return;
@@ -218,7 +220,7 @@ function configObject(){
   parameters:{freq:state.freq,apX:state.apX,apY:state.apY,eta:state.eta,pointsPerWave:state.pointsPerWave,
    Lx:state.Lx,Ly:state.Ly,Lz:state.Lz,zMin:state.zMin,centerX:state.centerX,centerY:state.centerY,
    target:{...state.target},cuts:{...state.cuts},nodes:state.nodes.map(n=>({x:n.x,y:n.y,z:n.z,phase:n.phase,power:n.power}))},
-  study:{axis:$("studyAxis").value,coord:Number($("studyCoord").value),active:state.studyPlane.active,scanSpan:state.scanSpan},
+  study:{axis:$("studyAxis").value,coord:Number($("studyCoord").value),active:state.studyPlane.active,scanSpan:state.scanSpan,aimMode:$("scanAimMode").value},
   display:{mode:state.mode,t:state.t,speed:state.speed,scaleFactor:{...state.scaleFactor}}
  };
 }
@@ -249,7 +251,7 @@ async function importConfig(file){
   state.centerX=num(p.centerX,0,-1e7,1e7,"视图中心 X");state.centerY=num(p.centerY,0,-1e7,1e7,"视图中心 Y");
   state.target=target;state.cuts=cuts;state.nodes=nodeList;
   const st=root.study||{},axis=["x","y","z"].includes(st.axis)?st.axis:"x";
-  state.scanSpan=num(st.scanSpan,state.scanSpan,.1,1000,"穿面半宽");
+  state.scanSpan=num(st.scanSpan,state.scanSpan,.1,1000,"穿面半宽");state.scanAimMode=st.aimMode==="fixed"?"fixed":"track";
   state.studyPlane={axis,coord:num(st.coord,cuts[axis],-1e7,1e7,"研究平面位置"),active:!!st.active};
   if(state.studyPlane.active)state.cuts[axis]=state.studyPlane.coord;
   const d=root.display||{};
@@ -260,7 +262,7 @@ async function importConfig(file){
   $("freq").value=state.freq;$("apX").value=state.apX;$("apY").value=state.apY;$("eta").value=state.eta;$("pointsPerWave").value=String(state.pointsPerWave);
   $("Lx").value=state.Lx;$("Ly").value=state.Ly;$("Lz").value=state.Lz;$("zMin").value=state.zMin;
   $("targetX").value=target.x;$("targetY").value=target.y;$("targetZ").value=target.z;
-  $("studyAxis").value=axis;$("studyCoord").value=state.studyPlane.coord;$("scanSpan").value=state.scanSpan;$("count").value=state.nodes.length;
+  $("studyAxis").value=axis;$("studyCoord").value=state.studyPlane.coord;$("scanSpan").value=state.scanSpan;$("scanAimMode").value=state.scanAimMode;$("count").value=state.nodes.length;
   $("time").value=state.t;$("speed").value=state.speed;
   $("modeE").classList.toggle("selected",state.mode==="E");$("modeS").classList.toggle("selected",state.mode==="S");
   renderNodes();syncViewInput();drawScanPlot();updateExtras();queue();
