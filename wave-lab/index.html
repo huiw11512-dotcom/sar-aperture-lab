@@ -12,7 +12,7 @@
    <div><label for="apY">口径宽 / λ</label><input id="apY" type="number" min=".5" max="30" value="5" step=".5"></div>
    <div><label for="eta">口面效率</label><input id="eta" type="number" min=".01" max="1" value=".7" step=".05"></div>
    <div><label>波长</label><div id="lambdaValue" class="meta" style="padding-top:12px;font-weight:750">29.98 mm</div></div>
-  </div><div class="sampling-readout" id="sampleInfo" aria-live="polite">按空间范围自动计算网格</div>
+  </div>
  </section>
  <section class="section"><h2>空间显示范围 / m</h2><div class="fields">
   <div><label for="Lx">X 宽度</label><input id="Lx" type="number" min=".05" max="500" step="any" value="50"></div>
@@ -32,7 +32,7 @@
  <div id="nodes"></div></section>
 </aside>
 <main class="main">
- <header class="headline"><h1>三维空间场 · 正交切片</h1><div class="top-actions"><span class="status" id="status">就绪</span><button id="exportPNG" class="primary">导出论文图</button><select id="csvAxis" class="select-inline" aria-label="CSV导出截面"><option value="x">YZ</option><option value="y">XZ</option><option selected value="z">XY</option></select><button id="exportCSV">导出CSV</button></div></header>
+ <header class="headline"><h1>三维空间场 · 正交切片</h1><div class="top-actions"><span class="status" id="status">就绪</span><button id="localDetail" type="button">精细视图</button><button id="restoreOverview" type="button" disabled>全域视图</button><button id="exportPNG" class="primary">导出论文图</button><select id="csvAxis" class="select-inline" aria-label="CSV导出截面"><option value="x">YZ</option><option value="y">XZ</option><option selected value="z">XY</option></select><button id="exportCSV">导出CSV</button></div></header>
  <div class="workbar card"><button id="play" class="primary">▶ 播放</button><button id="reset">复位</button>
    <div class="timeline"><label for="time">周期时刻 <span id="timeValue" class="value">0.000 T</span></label><input type="range" id="time" min="0" max="1" step=".001" value="0"></div>
    <div class="speed"><label for="speed">播放速度</label><select id="speed"><option value=".25">慢</option><option value=".5" selected>中</option><option value="1">快</option></select></div>
@@ -57,19 +57,14 @@
       <button type="button" id="scaleAuto" title="恢复自动色标">自动</button>
     </div>
   </div>
-  <div class="resolution-actions">
-    <div class="resolution-summary" id="resolutionSummary"></div>
-    <button id="localDetail" type="button">局部精细查看</button>
-    <button id="restoreOverview" type="button" disabled>恢复全域</button>
-  </div>
-  <div id="sampleWarning" class="hintline"></div>
+
  </section>
  <div class="lower">
   <section class="card panel"><div class="scene-heading"><h2>三维空间预览</h2><button id="resetView" type="button" aria-label="重置三维视角">重置视角</button></div>
  <svg id="scene3d" class="scene" viewBox="0 0 650 275" role="img" tabindex="0" aria-label="三维空间预览：鼠标拖动可旋转，滚轮可缩放；右下角显示坐标轴"></svg></section>
   <section class="card panel"><h2>各节点 · 目标位置时域电场</h2><canvas id="trace" class="trace" width="860" height="310"></canvas><div id="legend" class="legend"></div></section>
  </div>
- <footer class="footer"><a href="./validation/">数值验收</a><a href="./legacy/">二维旧版</a><a href="https://github.com/huiw11512-dotcom/sar-aperture-lab/tree/main/wave-lab" target="_blank" rel="noreferrer">GitHub 源码 ↗</a></footer>
+ 
 </main></div>
 <div id="lens" class="lens" aria-hidden="true"><div class="lens-head">局部放大 · 5×</div><canvas id="lensCanvas" width="444" height="444"></canvas><div class="lens-pos" id="lensCoord">—</div><div class="lens-val" id="lensReading">—</div></div>
 <script src="./physics3d.js"></script><script src="./app3d.js"></script>
