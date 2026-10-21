@@ -46,7 +46,15 @@
   <div class="shared-scale" aria-label="三张切片统一色标">
     <span class="shared-scale-unit" id="scaleUnit">瞬时电场强度 · V/m</span>
     <div class="shared-scale-track">
-      <span>0</span><div class="shared-scale-gradient" id="scaleGradient"></div><span id="scaleMax">—</span>
+      <span>0</span>
+      <div class="shared-scale-gradient" id="scaleGradient">
+        <input id="scaleLimit" type="range" min="0" max="1000" step="1" value="1000" aria-label="拖动调整色标最大值" title="拖动调整颜色显示上限">
+      </div>
+      <div class="scale-max-control">
+        <label for="scaleMax">最大值</label>
+        <input id="scaleMax" type="number" min="0" step="any" inputmode="decimal" aria-label="直接输入色标最大值">
+      </div>
+      <button type="button" id="scaleAuto" title="恢复自动色标">自动</button>
     </div>
   </div>
   <div class="resolution-actions">
