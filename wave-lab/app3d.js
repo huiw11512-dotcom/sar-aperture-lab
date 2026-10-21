@@ -99,7 +99,6 @@ function setMode(mode){
  state.mode=mode;$("modeE").classList.toggle("selected",mode==="E");$("modeS").classList.toggle("selected",mode==="S");drawDynamic();
 }
 const MAX_GRID=1000;
-const prettyCount=x=>new Intl.NumberFormat("zh-CN",{notation:"compact",maximumFractionDigits:2}).format(x);
 function samplingPlan(){
  const lambda=F.C/(state.freq*1e9),step=lambda/state.pointsPerWave;
  const dims={x:Math.ceil(state.Lx/step),y:Math.ceil(state.Ly/step),z:Math.ceil(state.Lz/step)};
@@ -108,14 +107,11 @@ function samplingPlan(){
  return {lambda,step,dims,demanded,total,n:Math.max(64,Math.min(MAX_GRID,demanded)),limited:demanded>MAX_GRID};
 }
 function updateSampling(){
- const p=samplingPlan();state.n=p.n;
- $("sampleInfo").textContent="λ "+fmt(p.lambda*1e3,2)+" mm · 自动 "+p.n+"² × 3";
- const demandedText=prettyCount(p.total),actualText=prettyCount(3*p.n*p.n);
- $("resolutionSummary").textContent="按 "+state.pointsPerWave+" 点/λ：理论 "+demandedText+" 点 · 本次 "+actualText+" 点";
- $("sampleWarning").style.display=p.limited?"block":"none";
- $("sampleWarning").textContent=p.limited?"全域采样超过浏览器预算；当前为降采样概览，细节与峰值不保证收敛。请使用「局部精细查看」。":"";
+ // Preserve wavelength-based grid selection silently; no on-screen diagnostic microtext.
+ const plan=samplingPlan();
+ state.n=plan.n;
  $("restoreOverview").disabled=!state.savedOverview;
- return p;
+ return plan;
 }
 function syncViewInput(){
  for(const key of ["Lx","Ly","Lz","zMin"])$(key).value=Number(state[key].toFixed(6));
