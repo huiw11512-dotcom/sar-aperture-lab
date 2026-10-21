@@ -38,7 +38,7 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
 .details{border-top:1px solid #e8eff2;margin-top:14px;padding-top:12px}.details summary{cursor:pointer;font-weight:630;color:#718696;font-size:13px}.details div{font-size:13px;line-height:1.85;color:#607a89;margin-top:9px}
 .footer{margin:22px 0 0;display:flex;justify-content:flex-end;gap:16px;font-size:13px}.footer a{color:#6d8796;text-decoration:none}.footer a:hover{text-decoration:underline}
 .lens{position:fixed;display:none;pointer-events:none;width:244px;background:#fff;padding:10px;border:1px solid #cfdee5;border-radius:12px;box-shadow:0 15px 45px rgba(28,51,63,.17);z-index:20}
-.lens.show{display:block}.lens-head{font-size:13px;font-weight:740;margin-bottom:8px}.lens canvas{width:222px;height:222px;border:1px solid #dce6ec;image-rendering:pixelated}.lens-pos,.lens-val{font-family:Consolas,monospace;font-size:12px;margin-top:7px;color:#375a69}
+.lens.show{display:block}.lens-head{font-size:13px;font-weight:740;margin-bottom:8px}.lens canvas{width:222px;height:222px;border:1px solid #dce6ec;image-rendering:pixelated}.lens-pos{font-family:Consolas,monospace;font-size:12px;margin-top:7px;color:#375a69}.lens-val,.lens-max-val{font-family:Consolas,monospace;font-size:13px;font-weight:650;margin-top:8px;color:#244b61}.lens-max-val{padding-top:7px;border-top:1px solid #dce6ec;color:#bd2844}
 @media(max-width:1440px){.app{grid-template-columns:285px minmax(0,1fr)}.main{padding:22px}.figure-layout{gap:7px}.figure{padding:14px}.panel{padding:15px}}
 @media(max-width:1020px){.figure-layout{grid-template-columns:repeat(2,minmax(0,1fr))}.lower{grid-template-columns:1fr}.figure-layout .slice:last-child{max-width:570px}}
 @media(max-width:780px){.app{display:block}.sidebar{max-height:none;position:static;padding:20px}.main{padding:14px}.figure-layout{grid-template-columns:1fr}.figure-layout .slice:last-child{max-width:none}.workbar{gap:10px}.slice{max-width:600px;margin:auto}.lower{grid-template-columns:1fr}}
@@ -221,7 +221,7 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
  </div>
  
 </main></div>
-<div id="lens" class="lens" aria-hidden="true"><div class="lens-head">局部放大 · 5×</div><canvas id="lensCanvas" width="444" height="444"></canvas><div class="lens-pos" id="lensCoord">—</div><div class="lens-val" id="lensReading">—</div></div>
+<div id="lens" class="lens" aria-hidden="true"><div class="lens-head">局部放大 · 5×</div><canvas id="lensCanvas" width="444" height="444"></canvas><div class="lens-pos" id="lensCoord">—</div><div class="lens-val" id="lensReading">—</div><div class="lens-max-val" id="lensMaxReading">—</div></div>
 <script id="waveLabWorkerCode" type="text/plain">/* Wave Lab 3D: independent, low-power, ideal rectangular-aperture propagation.
    Units: m, Hz, W, peak E (V/m), H (A/m). No finite-aperture near field. */
 (function(root){
@@ -1164,10 +1164,20 @@ function showLens(axis,e){
  const cx=(uv.u*n-ix)/sw*444,cy=(uv.v*n-iy)/sw*444;g.strokeStyle="#fff";g.lineWidth=3;g.strokeRect(cx-11,cy-11,22,22);
  const xyz=F.planePoint(params(),axis,uv.u,uv.v),a=state.values[axis],i=F.clamp(Math.floor(uv.u*n),0,n-1),j=F.clamp(Math.floor(uv.v*n),0,n-1);
  $("lensCoord").textContent=F.AXES.map(k=>k+"="+fmt(xyz[k],2)).join("  ")+" m";
- const direct=F.instantaneous(F.fieldAt(params(),xyz),state.t);
- $("lensReading").textContent=sci(state.mode==="E"?direct.E:direct.S)+(state.mode==="E"?" V/m":" W/cm²");
+ const field=F.fieldAt(params(),xyz);
+ const direct=F.instantaneous(field,state.t);
+ const unit=state.mode==="E"?" V/m":" W/cm²";
+ const current=state.mode==="E"?direct.E:direct.S;
+ let cycleMax=0;
+ for(let k=0;k<512;k++){
+  const sample=F.instantaneous(field,k/512);
+  const value=state.mode==="E"?sample.E:sample.S;
+  if(value>cycleMax)cycleMax=value;
+ }
+ $("lensReading").textContent="瞬时值："+sci(current)+unit;
+ $("lensMaxReading").textContent="周期最大值："+sci(cycleMax)+unit;
  const div=$("lens");div.classList.add("show");div.setAttribute("aria-hidden","false");
- const W=244,H=322;
+ const W=244,H=354;
  let left=e.clientX+17,top=e.clientY+15;
  if(left+W>window.innerWidth-5)left=e.clientX-W-17;
  if(top+H>window.innerHeight-5)top=e.clientY-H-17;
