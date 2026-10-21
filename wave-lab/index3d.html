@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f3f6f8">
+<title>Wave Lab | 三维空间切片</title><link rel="stylesheet" href="./style3d.css"></head>
+<body><div class="app">
+<aside class="sidebar">
+ <div class="brand"><div class="mark">∿</div><div class="brand-text">Wave Lab</div></div>
+ <section class="section"><h2>空间与口径</h2>
+  <div class="fields">
+   <div><label for="freq">频率 / GHz</label><input id="freq" type="number" min=".2" max="100" step="any" value="10"></div>
+   <div><label for="resolution">网格精度</label><select id="resolution"><option value="320">320² × 3</option><option value="512" selected>512² × 3</option><option value="768">768² × 3</option><option value="1000">1000² × 3</option></select></div>
+   <div><label for="apX">口径长 / λ</label><input id="apX" type="number" min=".5" max="30" value="5" step=".5"></div>
+   <div><label for="apY">口径宽 / λ</label><input id="apY" type="number" min=".5" max="30" value="5" step=".5"></div>
+   <div><label for="eta">口面效率</label><input id="eta" type="number" min=".01" max="1" value=".7" step=".05"></div>
+   <div><label>波长</label><div id="lambdaValue" class="meta" style="padding-top:12px;font-weight:750">29.98 mm</div></div>
+  </div>
+ </section>
+ <section class="section"><h2>空间显示范围 / m</h2><div class="fields">
+  <div><label for="Lx">X 宽度</label><input id="Lx" type="number" min=".05" max="500" step="any" value="50"></div>
+  <div><label for="Ly">Y 宽度</label><input id="Ly" type="number" min=".05" max="500" step="any" value="50"></div>
+  <div><label for="zMin">Z 起点</label><input id="zMin" type="number" step="any" value="0"></div>
+  <div><label for="Lz">Z 高度</label><input id="Lz" type="number" min=".05" max="500" step="any" value="60"></div>
+ </div></section>
+ <section class="section"><h2>截面位置 / m</h2><div class="fields triple">
+  <div><label for="cutX">X 截面</label><input id="cutX" type="number" step="any" value="0"></div>
+  <div><label for="cutY">Y 截面</label><input id="cutY" type="number" step="any" value="0"></div>
+  <div><label for="cutZ">Z 截面</label><input id="cutZ" type="number" step="any" value="50"></div>
+ </div></section>
+ <section class="section"><h2>目标 T / m</h2><div class="fields triple">
+  <div><label for="targetX">X</label><input id="targetX" type="number" step="any" value="0"></div>
+  <div><label for="targetY">Y</label><input id="targetY" type="number" step="any" value="0"></div>
+  <div><label for="targetZ">Z</label><input id="targetZ" type="number" step="any" value="50"></div>
+ </div></section>
+ <section class="section"><h2>观察点 Q / m</h2><div class="fields triple">
+  <div><label for="probeX">X</label><input id="probeX" type="number" step="any" value="0"></div>
+  <div><label for="probeY">Y</label><input id="probeY" type="number" step="any" value="0"></div>
+  <div><label for="probeZ">Z</label><input id="probeZ" type="number" step="any" value="50"></div>
+ </div></section>
+ <section class="section"><div class="name-row"><h2 style="margin:0">源节点</h2><select id="count" style="width:83px"><option>2</option><option selected>4</option><option>6</option><option>8</option></select></div>
+ <div class="inline-actions" style="margin-bottom:13px"><button id="equalPhase">同相</button><button id="randomPhase">随机相位</button></div>
+ <div id="nodes"></div></section>
+</aside>
+<main class="main">
+ <header class="headline"><h1>三维空间场 · 正交切片</h1><div class="top-actions"><span class="status" id="status">就绪</span><a href="./validation/" style="color:#678392;font-size:13px">数值验收</a><button id="exportPNG" class="primary">导出论文图</button><select id="csvAxis" class="select-inline" aria-label="CSV导出截面"><option value="x">YZ</option><option value="y">XZ</option><option selected value="z">XY</option></select><button id="exportCSV">导出CSV</button></div></header>
+ <div class="workbar card"><button id="play" class="primary">▶ 播放</button><button id="reset">复位</button>
+   <div class="timeline"><label for="time">周期时刻 <span id="timeValue" class="value">0.000 T</span></label><input type="range" id="time" min="0" max="1" step=".001" value="0"></div>
+   <div class="speed"><label for="speed">播放速度</label><select id="speed"><option value=".25">慢</option><option value=".5" selected>中</option><option value="1">快</option></select></div>
+ </div>
+ <section class="figure card"><div class="fig-head"><h2>空间场分布</h2><div class="mode"><button id="modeE" class="selected">瞬时电场 |E|</button><button id="modeS">瞬时功率通量 |S|</button></div></div>
+  <div class="figure-layout">
+   <div class="slice"><h3>YZ 截面 <span id="labelX">x = 0 m</span></h3><canvas id="plotX" width="580" height="675" aria-label="YZ 截面场图"></canvas></div>
+   <div class="slice"><h3>XZ 截面 <span id="labelY">y = 0 m</span></h3><canvas id="plotY" width="580" height="675" aria-label="XZ 截面场图"></canvas></div>
+   <div class="slice"><h3>XY 截面 <span id="labelZ">z = 50 m</span></h3><canvas id="plotZ" width="580" height="675" aria-label="XY 截面场图"></canvas></div>
+  </div><div id="sampleWarning" class="hintline"></div>
+ </section>
+ <div class="lower">
+  <section class="card panel"><h2>空间几何预览</h2><svg id="scene3d" class="scene" viewBox="0 0 650 275" aria-label="三维源节点、目标及切片的轴测示意"></svg><div class="info" id="geometryInfo"></div><details class="details"><summary>各节点到目标与观察点的距离</summary><div id="distances"></div></details></section>
+  <section class="card panel"><h2>各节点 · 观察点时域电场</h2><canvas id="trace" class="trace" width="860" height="310"></canvas><div id="legend" class="legend"></div><div class="info" id="probeInfo"></div></section>
+ </div>
+ <footer class="footer"><a href="./legacy/">二维旧版</a><a href="https://github.com/huiw11512-dotcom/sar-aperture-lab/tree/main/wave-lab" target="_blank" rel="noreferrer">GitHub 源码 ↗</a></footer>
+</main></div>
+<div id="lens" class="lens" aria-hidden="true"><div class="lens-head">局部放大 · 5×</div><canvas id="lensCanvas" width="444" height="444"></canvas><div class="lens-pos" id="lensCoord">—</div><div class="lens-val" id="lensReading">—</div></div>
+<script src="./physics3d.js"></script><script src="./app3d.js"></script>
+</body></html>
