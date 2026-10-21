@@ -727,13 +727,17 @@ function exportPNG(){
 }
 function exportCSV(){
  if(!state.data)return;
- const axis=$("csvAxis").value,n=state.data.n,prm=params(),f=state.data.axes[axis].fields,co=Math.cos(TWO*state.t),si=Math.sin(TWO*state.t);
- const lines=["x_m,y_m,z_m,"+(state.mode==="E"?"E_inst_Vpm":"Poynting_inst_Wpcm2")];
- for(let j=0;j<n;j++)for(let i=0;i<n;i++){
-  const xyz=F.planePoint(prm,axis,(i+.5)/n,(j+.5)/n);
-  lines.push([xyz.x,xyz.y,xyz.z,instantValue(f,j*n+i,co,si,state.mode)].map(x=>Number(x).toPrecision(8)).join(","));
+ const n=state.data.n,prm=params(),co=Math.cos(TWO*state.t),si=Math.sin(TWO*state.t);
+ const valueName=state.mode==="E"?"E_inst_Vpm":"Poynting_inst_Wpcm2";
+ const lines=["plane,x_m,y_m,z_m,"+valueName];
+ for(const axis of ["x","y","z"]){
+  const f=state.data.axes[axis].fields;
+  for(let j=0;j<n;j++)for(let i=0;i<n;i++){
+   const xyz=F.planePoint(prm,axis,(i+.5)/n,(j+.5)/n);
+   lines.push([axis.toUpperCase(),xyz.x,xyz.y,xyz.z,instantValue(f,j*n+i,co,si,state.mode)].map((x,k)=>k===0?x:Number(x).toPrecision(8)).join(","));
+  }
  }
- download(new Blob(["\ufeff",lines.join("\n")],{type:"text/csv;charset=utf-8"}),"WaveLab_3D_"+axis+"_slice.csv");
+ download(new Blob(["\ufeff",lines.join("\n")],{type:"text/csv;charset=utf-8"}),"WaveLab_3D_all_orthogonal_slices.csv");
 }
 bind();renderNodes();updateExtras();drawTrace();initSceneControls();queue();requestAnimationFrame(tick);
 })();
