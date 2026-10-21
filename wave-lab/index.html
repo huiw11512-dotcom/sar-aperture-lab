@@ -44,7 +44,7 @@
  <div id="nodes"></div></section>
 </aside>
 <main class="main">
- <header class="headline"><h1>三维空间场 · 正交切片</h1><div class="top-actions"><span class="status" id="status">就绪</span><button id="exportConfig" type="button">导出配置</button><button id="importConfig" type="button">导入配置</button><input id="importConfigFile" type="file" accept=".json,application/json" hidden><button id="localDetail" type="button">精细视图</button><button id="restoreOverview" type="button" disabled>全域视图</button><button id="exportPNG" class="primary">导出论文图</button><select id="csvAxis" class="select-inline" aria-label="CSV导出截面"><option value="x">YZ</option><option value="y">XZ</option><option selected value="z">XY</option></select><button id="exportCSV">导出CSV</button></div></header>
+ <header class="headline"><div class="top-actions"><span class="status" id="status">就绪</span><button id="exportConfig" type="button">导出配置</button><button id="importConfig" type="button">导入配置</button><input id="importConfigFile" type="file" accept=".json,application/json" hidden><button id="localDetail" type="button">精细视图</button><button id="restoreOverview" type="button" disabled>全域视图</button><button id="exportPNG" class="primary">导出论文图</button><button id="exportCSV">导出CSV</button></div></header>
  <div class="workbar card"><button id="play" class="primary">▶ 播放</button><button id="reset">复位</button>
    <div class="timeline"><label for="time">周期时刻 <span id="timeValue" class="value">0.000 T</span></label><input type="range" id="time" min="0" max="1" step=".001" value="0"></div>
    <div class="speed"><label for="speed">播放速度</label><select id="speed"><option value=".25">慢</option><option value=".5" selected>中</option><option value="1">快</option></select></div>
