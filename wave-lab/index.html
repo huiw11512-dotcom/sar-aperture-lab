@@ -17,17 +17,17 @@
  <section class="section"><h2>空间显示范围 / m</h2><div class="fields">
   <div><label for="Lx">X 宽度</label><input id="Lx" type="number" min=".05" max="500" step="any" value="50"></div>
   <div><label for="Ly">Y 宽度</label><input id="Ly" type="number" min=".05" max="500" step="any" value="50"></div>
-  <div><label for="zMin">Z 起点</label><input id="zMin" type="number" step="any" value="0"></div>
+  <div><label for="zMin">Z 起点</label><input id="zMin" type="number" step="any" value="-30"></div>
   <div><label for="Lz">Z 高度</label><input id="Lz" type="number" min=".05" max="500" step="any" value="60"></div>
  </div></section>
 
  <section class="section"><h2>目标 T / m</h2><div class="fields triple">
   <div><label for="targetX">X</label><input id="targetX" type="number" step="any" value="0"></div>
-  <div><label for="targetY">Y</label><input id="targetY" type="number" step="any" value="0"></div>
-  <div><label for="targetZ">Z</label><input id="targetZ" type="number" step="any" value="50"></div>
+  <div><label for="targetY">Y</label><input id="targetY" type="number" step="any" value="10"></div>
+  <div><label for="targetZ">Z</label><input id="targetZ" type="number" step="any" value="20"></div>
  </div></section>
 
- <section class="section">
+ <section class="section" id="studyControls">
   <h2>共面干涉研究</h2>
   <div class="fields">
    <div><label for="studyAxis">平面法向</label><select id="studyAxis"><option value="x" selected>X · YZ 平面</option><option value="y">Y · XZ 平面</option><option value="z">Z · XY 平面</option></select></div>
