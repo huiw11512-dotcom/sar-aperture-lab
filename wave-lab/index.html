@@ -257,8 +257,8 @@ sampleCheck();drawFigure($('mean'),2,true);dynamic();$('status').textContent='�
 }
 function sampleCheck(){const l=state.data.lam,nd=state.nodes;let maxDu=0,maxDv=0;
 for(const [x,y] of [[0,0],[-state.Lx/2,-state.Ly/2],[state.Lx/2,state.Ly/2],[-state.Lx/2,state.Ly/2],[state.Lx/2,-state.Ly/2]]){const uv=nd.map(q=>{const dx=x-q.x,dy=y-q.y,r=Math.hypot(dx,dy,state.H);return [dx/r,dy/r]});for(let a=0;a<uv.length;a++)for(let b=a+1;b<uv.length;b++){maxDu=Math.max(maxDu,Math.abs(uv[a][0]-uv[b][0]));maxDv=Math.max(maxDv,Math.abs(uv[a][1]-uv[b][1]));}}
-const fx=maxDu?l/maxDu:Infinity,fy=maxDv?l/maxDv:Infinity,worst=Math.min(fx/(state.Lx/state.n),fy/(state.Ly/state.n));const a=Math.max(state.apX,state.apY)*l,far=2*a*a/l;
-let s=`空间采样：最小估计干涉周期约 ${fmt(Math.min(fx,fy)*100,1)} cm，约 ${fmt(worst,1)} 像素/周期（建议 ≥6）。`;if(worst<6)s+=' 当前网格存在漏采干涉峰风险，最大值不可视为已收敛。';if(state.H<far)s+=` 单口径远场判据约 ${fmt(far,2)} m；当前高度不满足。`;s+=' 绝对功率归一化尚需物理闭合验证，详见“数值验收报告”。';
+const fx=maxDu?l/maxDu:Infinity,fy=maxDv?l/maxDv:Infinity,worst=Math.min(fx/(state.Lx/state.n),fy/(state.Ly/state.n));const D=Math.hypot(state.apX,state.apY)*l,far=2*D*D/l;
+let s=`空间采样：最小估计干涉周期约 ${fmt(Math.min(fx,fy)*100,1)} cm，约 ${fmt(worst,1)} 像素/周期（建议 ≥6）。`;if(worst<6)s+=' 当前网格存在漏采干涉峰风险，最大值不可视为已收敛。';if(state.H<far)s+=` 按口径最大对角尺寸计算的保守远场判据约 ${fmt(far,2)} m；当前高度不满足。`;s+=' 绝对功率归一化尚需物理闭合验证，详见“数值验收报告”。';
 const el=$('sampleAlert');el.textContent=s;el.classList.toggle('warn',worst<6||state.H<far)}
 const signed=[[49,67,126],[92,146,187],[209,226,234],[250,251,249],[242,206,178],[200,113,95],[148,47,56]];
 const viridis=[[68,1,84],[71,44,122],[59,81,139],[44,113,142],[33,145,140],[94,201,98],[253,231,37]];
