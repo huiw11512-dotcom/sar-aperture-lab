@@ -76,3 +76,32 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
 .legend{font-size:14px;gap:9px 17px}
 .footer{font-size:14px}
 @media(max-width:780px){.scene{height:285px}.fields.triple label{font-size:14px}}
+
+
+/* Interactive shared colorbar, keeping one physical display upper limit across all three cuts */
+.shared-scale{max-width:1040px;margin:8px auto 10px;padding:4px 10px}
+.shared-scale-track{gap:14px;align-items:center}
+.shared-scale-track>span:first-child{font-size:16px;font-weight:730;min-width:19px}
+.shared-scale-gradient{position:relative;min-width:180px;height:24px;border:1px solid #aebfc9;flex:1;overflow:visible;border-radius:4px;box-shadow:0 1px 3px rgba(22,49,67,.08)}
+.shared-scale-gradient input[type="range"]{
+ position:absolute;inset:0;top:-9px;width:100%;height:40px;min-width:0;margin:0;
+ appearance:none;-webkit-appearance:none;background:transparent;border:0;outline-offset:3px;cursor:ew-resize;
+}
+.shared-scale-gradient input[type="range"]::-webkit-slider-runnable-track{background:transparent;height:24px}
+.shared-scale-gradient input[type="range"]::-moz-range-track{background:transparent;height:24px}
+.shared-scale-gradient input[type="range"]::-webkit-slider-thumb{
+ appearance:none;-webkit-appearance:none;width:19px;height:32px;margin-top:-4px;
+ background:#fff;border:3px solid #1a506b;border-radius:6px;box-shadow:0 1px 7px rgba(8,35,55,.24);cursor:ew-resize;
+}
+.shared-scale-gradient input[type="range"]::-moz-range-thumb{
+ width:16px;height:29px;background:#fff;border:3px solid #1a506b;border-radius:6px;box-shadow:0 1px 7px rgba(8,35,55,.24);cursor:ew-resize;
+}
+.scale-max-control{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.scale-max-control label{margin:0;color:#526d7b;font-weight:680;font-size:14px;white-space:nowrap}
+.scale-max-control input{width:120px;min-width:0;height:39px;font-size:15px;font-family:ui-monospace,Consolas,monospace;font-weight:660;padding:7px 9px}
+.shared-scale-track #scaleAuto{height:39px;padding:8px 14px;font-size:14px;flex-shrink:0}
+@media(max-width:860px){
+ .shared-scale-track{flex-wrap:wrap;gap:10px}
+ .shared-scale-gradient{flex-basis:calc(100% - 38px)}
+ .scale-max-control{margin-left:25px}
+}
