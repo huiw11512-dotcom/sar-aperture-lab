@@ -73,8 +73,9 @@ function selectedStudyAxis(){
 }
 function updateStudyPlaneTitle(){
  if(!$("studyPlaneTitle"))return;
- const axis=selectedStudyAxis(),names={x:"YZ",y:"XZ",z:"XY"};
- $("studyPlaneTitle").textContent=names[axis]+" 平面 · "+axis+" = "+fmt(state.cuts[axis],3)+" m";
+ const axis=selectedStudyAxis(),names={x:"YZ",y:"XZ",z:"XY"},coords=state.nodes.map(n=>n[axis]);
+ const thickness=Math.max(...coords)-Math.min(...coords);
+ $("studyPlaneTitle").textContent=names[axis]+" 平面 · "+axis+" = "+fmt(state.cuts[axis],3)+" m · 节点厚度 "+sci(thickness)+" m";
  $("planeRangeLabel").textContent="当前"+names[axis]+"截面 "+(state.mode==="E"?"电场最小 / 最大":"功率通量最小 / 最大");
  $("scanFieldTitle").textContent=state.mode==="E"?"目标穿面瞬时电场 |E(t)|":"目标穿面瞬时功率通量 |S(t)|";
 }
@@ -352,12 +353,14 @@ function setMode(mode){
  state.mode=mode;$("modeE").classList.toggle("selected",mode==="E");$("modeS").classList.toggle("selected",mode==="S");drawDynamic();drawScanPlot();
 }
 const MAX_GRID=1000;
+function gridLimitForNodes(){return Math.max(128,Math.min(MAX_GRID,Math.floor(MAX_GRID*Math.sqrt(4/state.nodes.length))));}
 function samplingPlan(){
  const lambda=F.C/(state.freq*1e9),step=lambda/state.pointsPerWave;
  const dims={x:Math.ceil(state.Lx/step),y:Math.ceil(state.Ly/step),z:Math.ceil(state.Lz/step)};
  const demanded=Math.max(...Object.values(dims));
  const total=dims.y*dims.z+dims.x*dims.z+dims.x*dims.y;
- return {lambda,step,dims,demanded,total,n:Math.max(64,Math.min(MAX_GRID,demanded)),limited:demanded>MAX_GRID};
+ const gridLimit=gridLimitForNodes();
+ return {lambda,step,dims,demanded,total,n:Math.max(64,Math.min(gridLimit,demanded)),limited:demanded>gridLimit};
 }
 function updateSampling(){
  // Preserve wavelength-based grid selection silently; no on-screen diagnostic microtext.
@@ -371,7 +374,7 @@ function syncViewInput(){
 }
 function focusLocal(){
  if(!state.savedOverview)state.savedOverview={Lx:state.Lx,Ly:state.Ly,Lz:state.Lz,zMin:state.zMin,centerX:state.centerX,centerY:state.centerY};
- const lambda=F.C/(state.freq*1e9),windowSize=0.95*MAX_GRID*lambda/state.pointsPerWave;
+ const lambda=F.C/(state.freq*1e9),windowSize=0.95*gridLimitForNodes()*lambda/state.pointsPerWave;
  state.Lx=Math.min(state.Lx,windowSize);state.Ly=Math.min(state.Ly,windowSize);state.Lz=Math.min(state.Lz,windowSize);
  state.centerX=state.target.x;state.centerY=state.target.y;state.zMin=state.target.z-state.Lz/2;
  state.cuts={...state.target};if(state.studyPlane.active)state.cuts[state.studyPlane.axis]=state.studyPlane.coord;
