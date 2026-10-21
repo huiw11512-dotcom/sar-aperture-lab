@@ -27,12 +27,23 @@
   <div><label for="targetZ">Z</label><input id="targetZ" type="number" step="any" value="50"></div>
  </div></section>
 
- <section class="section"><div class="name-row"><h2 style="margin:0">源节点</h2><select id="count" style="width:83px"><option>2</option><option selected>4</option><option>6</option><option>8</option></select></div>
+ <section class="section">
+  <h2>共面干涉研究</h2>
+  <div class="fields">
+   <div><label for="studyAxis">平面法向</label><select id="studyAxis"><option value="x" selected>X · YZ 平面</option><option value="y">Y · XZ 平面</option><option value="z">Z · XY 平面</option></select></div>
+   <div><label for="studyCoord">平面位置 / m</label><input id="studyCoord" type="number" step="any" value="0"></div>
+   <div><label for="scanSpan">穿面半宽 / λ</label><input id="scanSpan" type="number" min=".1" max="1000" step="any" value="5"></div>
+  </div>
+  <div class="inline-actions study-actions"><button id="detectStudyPlane" type="button">识别节点平面</button><button id="applyStudyPlane" type="button">查看该平面</button></div>
+  <div class="inline-actions study-actions"><button id="projectNodes" type="button">节点投影到平面</button><button id="scanThroughPlane" class="primary" type="button">扫描目标穿面</button></div>
+ </section>
+
+ <section class="section"><div class="name-row"><h2 style="margin:0">源节点</h2><input id="count" type="number" min="1" max="64" step="1" value="4" style="width:83px" aria-label="节点数量"></div>
  <div class="inline-actions" style="margin-bottom:13px"><button id="equalPhase">同相</button><button id="randomPhase">随机相位</button></div>
  <div id="nodes"></div></section>
 </aside>
 <main class="main">
- <header class="headline"><h1>三维空间场 · 正交切片</h1><div class="top-actions"><span class="status" id="status">就绪</span><button id="localDetail" type="button">精细视图</button><button id="restoreOverview" type="button" disabled>全域视图</button><button id="exportPNG" class="primary">导出论文图</button><select id="csvAxis" class="select-inline" aria-label="CSV导出截面"><option value="x">YZ</option><option value="y">XZ</option><option selected value="z">XY</option></select><button id="exportCSV">导出CSV</button></div></header>
+ <header class="headline"><h1>三维空间场 · 正交切片</h1><div class="top-actions"><span class="status" id="status">就绪</span><button id="exportConfig" type="button">导出配置</button><button id="importConfig" type="button">导入配置</button><input id="importConfigFile" type="file" accept=".json,application/json" hidden><button id="localDetail" type="button">精细视图</button><button id="restoreOverview" type="button" disabled>全域视图</button><button id="exportPNG" class="primary">导出论文图</button><select id="csvAxis" class="select-inline" aria-label="CSV导出截面"><option value="x">YZ</option><option value="y">XZ</option><option selected value="z">XY</option></select><button id="exportCSV">导出CSV</button></div></header>
  <div class="workbar card"><button id="play" class="primary">▶ 播放</button><button id="reset">复位</button>
    <div class="timeline"><label for="time">周期时刻 <span id="timeValue" class="value">0.000 T</span></label><input type="range" id="time" min="0" max="1" step=".001" value="0"></div>
    <div class="speed"><label for="speed">播放速度</label><select id="speed"><option value=".25">慢</option><option value=".5" selected>中</option><option value="1">快</option></select></div>
@@ -58,6 +69,18 @@
     </div>
   </div>
 
+ </section>
+ <section class="card panel study-panel">
+  <div class="scene-heading"><h2>共面干涉分析</h2><div id="studyPlaneTitle">YZ 平面 · x = 0 m</div></div>
+  <div class="study-metrics">
+   <div class="study-metric"><label>目标点瞬时电场</label><strong id="targetEStat">—</strong><span>V/m</span></div>
+   <div class="study-metric"><label>目标点瞬时功率通量</label><strong id="targetSStat">—</strong><span>W/cm²</span></div>
+   <div class="study-metric"><label>目标点相干合成比</label><strong id="coherenceStat">—</strong><span id="coherenceSub">相对各节点单独功率之和</span></div>
+   <div class="study-metric"><label id="planeRangeLabel">当前平面场值范围</label><strong id="planeRangeStat">—</strong><span id="planeRangeSub">—</span></div>
+  </div>
+  <div class="scan-heading"><h3 id="scanFieldTitle">目标穿面场强</h3><h3>相干合成比</h3></div>
+  <div class="scan-charts"><canvas id="planeScanField" width="1000" height="330" aria-label="目标穿面场强曲线"></canvas><canvas id="planeScanRatio" width="1000" height="330" aria-label="目标穿面相干合成比曲线"></canvas></div>
+  <div class="scan-footer"><div id="scanSummary">设置研究平面后，点击“扫描目标穿面”。</div><button id="exportScan" type="button" disabled>导出穿面扫描 CSV</button></div>
  </section>
  <div class="lower">
   <section class="card panel"><div class="scene-heading"><h2>三维空间预览</h2><button id="resetView" type="button" aria-label="重置三维视角">重置视角</button></div>
