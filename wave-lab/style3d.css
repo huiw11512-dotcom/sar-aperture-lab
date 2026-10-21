@@ -41,3 +41,24 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
 @media(max-width:1440px){.app{grid-template-columns:285px minmax(0,1fr)}.main{padding:22px}.figure-layout{gap:7px}.figure{padding:14px}.panel{padding:15px}}
 @media(max-width:1020px){.figure-layout{grid-template-columns:repeat(2,minmax(0,1fr))}.lower{grid-template-columns:1fr}.figure-layout .slice:last-child{max-width:570px}}
 @media(max-width:780px){.app{display:block}.sidebar{max-height:none;position:static;padding:20px}.main{padding:14px}.headline h1{font-size:23px}.figure-layout{grid-template-columns:1fr}.figure-layout .slice:last-child{max-width:none}.workbar{gap:10px}.slice{max-width:600px;margin:auto}.lower{grid-template-columns:1fr}}
+
+
+/* Saturated publication heatmap with one global color scale per figure */
+:root{--palette-blue:#203ab2;--palette-red:#cf193e}
+.fig-head{margin-bottom:11px}
+.figure-layout{gap:13px}
+.slice canvas{aspect-ratio:580/568}
+.slice h3{font-size:17px;margin:4px 0 6px}
+.slice h3 span{font-size:15px;color:#506d80}
+.shared-scale{max-width:720px;margin:3px auto 8px;padding:3px 10px 0}
+.shared-scale-unit{text-align:center;display:block;font-size:15px;font-weight:720;margin:0 0 11px;color:#34576c}
+.shared-scale-track{display:flex;align-items:center;gap:15px;color:#426174;font-size:15px;font-variant-numeric:tabular-nums;font-weight:620}
+.shared-scale-gradient{height:19px;border:1px solid #bed2db;border-radius:3px;flex:1;background:linear-gradient(to right,#203ab2 0%,#276fec 20%,#2ebce0 40%,#f7f9fb 50%,#ffc06e 65%,#ed4c43 82%,#cf193e 100%)}
+.shared-scale-track span:last-child{min-width:80px;text-align:right}
+.sampling-readout{font-size:14px;color:#356e82;line-height:1.55;padding:14px 0 0;font-weight:650;font-variant-numeric:tabular-nums}
+.resolution-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;padding:15px 3px 0;border-top:1px solid #edf2f5;margin-top:16px}
+.resolution-actions button{font-size:14px;padding:9px 15px}
+.resolution-summary{font-size:14px;font-weight:600;color:#5e7585;flex:1;min-width:220px}
+.hintline{font-size:14px;color:#b0552e;line-height:1.6;padding:8px 4px 0;margin-top:3px}
+.top-actions{gap:10px}
+@media(max-width:780px){.shared-scale{margin:4px 0 10px}.shared-scale-track{gap:8px}.resolution-summary{flex-basis:100%;min-width:0}.resolution-actions{justify-content:flex-start}}
