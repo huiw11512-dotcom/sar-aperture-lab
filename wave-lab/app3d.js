@@ -159,8 +159,25 @@ function compute(){
   setTimeout(()=>{if(token===job)try{complete(F.compute(prm,state.n));}catch(e){$("status").textContent="计算错误";}},30);
  }
 }
+function fixedScales(data){
+ let maxE=1e-15,maxS=1e-20;
+ for(const axis of F.AXES){
+  const f=data.axes[axis].fields,len=data.n*data.n;
+  for(let i=0;i<len;i++){
+   const a=f.erx[i]**2+f.ery[i]**2+f.erz[i]**2;
+   const b=f.eix[i]**2+f.eiy[i]**2+f.eiz[i]**2;
+   const cross=f.erx[i]*f.eix[i]+f.ery[i]*f.eiy[i]+f.erz[i]*f.eiz[i];
+   const ee=(a+b+Math.sqrt((a-b)**2+4*cross*cross))*.5;
+   const h=f.hrx[i]**2+f.hry[i]**2+f.hrz[i]**2+f.hix[i]**2+f.hiy[i]**2+f.hiz[i]**2;
+   if(ee>maxE*maxE)maxE=Math.sqrt(ee);
+   const bs=Math.sqrt((a+b)*h)/1e4;
+   if(bs>maxS)maxS=bs;
+  }
+ }
+ return {E:maxE,S:maxS};
+}
 function complete(data,preview=false){
- state.data=data;state.rasters={};
+ state.data=data;state.rasters={};state.fixedScales=fixedScales(data);
  $("status").textContent=preview?"已显示预览 · 高清计算中":"计算完成";
  $("exportPNG").disabled=preview;$("exportCSV").disabled=preview;
  $("lambdaValue").textContent=fmt(data.lambda*1e3,2)+" mm";
@@ -238,8 +255,8 @@ function drawDynamic(){
  if(!state.data||rendering)return;
  rendering=true;
  try{
-  const maps={},current={};let max=1e-16;
-  for(const axis of F.AXES){current[axis]=makeValues(axis);max=Math.max(max,current[axis].max);}
+  const maps={},current={};const max=state.fixedScales[state.mode];
+  for(const axis of F.AXES){current[axis]=makeValues(axis);}
   for(const axis of F.AXES){
    maps[axis]=rawRaster(current[axis].vals,max,state.data.n);
    drawSlice(axis,maps[axis],max);
@@ -302,11 +319,11 @@ function renderScene(){
  });
  html+='<circle cx="'+T.x+'" cy="'+T.y+'" r="7" fill="#d38b44" stroke="white" stroke-width="2"/><text x="'+(T.x+11)+'" y="'+(T.y-9)+'" font-size="15" font-weight="700" fill="#a97038">T</text>';
  html+='<circle cx="'+Q.x+'" cy="'+Q.y+'" r="5" fill="#315d76" stroke="white" stroke-width="2"/><text x="'+(Q.x+9)+'" y="'+(Q.y+15)+'" font-size="14" font-weight="700" fill="#315d76">Q</text>';
- html+='<text x="38" y="249" font-size="13" fill="#8396a1">轴测空间示意 · 不代表体素场求解</text>';
+ 
  svg.innerHTML=html;
 }
 function plotUV(canvas,e){
- const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width*580,y=(e.clientY-rect.top)/rect.height*675;
+ const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)/rect.width*580,y=(e.clientY-rect.top)/rect.height*568;
  const u=(x-X0)/SZ,v=(y-Y0)/SZ;
  if(u<0||u>1||v<0||v>1)return null;
  return {u,v};
