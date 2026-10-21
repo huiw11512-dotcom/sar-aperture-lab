@@ -26,7 +26,7 @@
     const x=(u-.5)*p.Lx, y=(u-.5)*p.Ly;
     if(axis==="x") return {x:p.cuts.x,y:(u-.5)*p.Ly,z:p.zMin+(1-v)*p.Lz};
     if(axis==="y") return {x:(u-.5)*p.Lx,y:p.cuts.y,z:p.zMin+(1-v)*p.Lz};
-    return {x:(u-.5)*p.Lx,y:p.zMin+(1-v)*p.Ly,z:p.cuts.z};
+    return {x:(u-.5)*p.Lx,y:(.5-v)*p.Ly,z:p.cuts.z};
   }
   function ranges(p,axis){
     if(axis==="x")return {hMin:-p.Ly/2,hMax:p.Ly/2,vMin:p.zMin,vMax:p.zMin+p.Lz,hName:"y",vName:"z",constant:"x"};
