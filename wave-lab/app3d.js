@@ -79,11 +79,30 @@ function updateStudyPlaneTitle(){
  $("planeRangeLabel").textContent="当前"+names[axis]+"截面 "+(state.mode==="E"?"电场最小 / 最大":"功率通量最小 / 最大");
  $("scanFieldTitle").textContent=state.mode==="E"?"目标穿面瞬时电场 |E(t)|":"目标穿面瞬时功率通量 |S(t)|";
 }
+let targetCycleCache={key:"",Emax:NaN,Smax:NaN};
+function updateTargetCycleMaximum(prm){
+ const key=JSON.stringify({freq:prm.freq,apX:prm.apX,apY:prm.apY,eta:prm.eta,target:prm.target,nodes:prm.nodes});
+ if(targetCycleCache.key===key)return targetCycleCache;
+ const phasor=F.fieldAt(prm,prm.target);
+ let Emax=0,Smax=0;
+ // Sample one complete RF period densely; t is normalized to cycles [0,1).
+ const samples=4096;
+ for(let i=0;i<samples;i++){
+  const value=F.instantaneous(phasor,i/samples);
+  if(value.E>Emax)Emax=value.E;
+  if(value.S>Smax)Smax=value.S;
+ }
+ targetCycleCache={key,Emax,Smax};
+ return targetCycleCache;
+}
 function updateStudyReadouts(){
  if(!state.data)return;
- const inst=F.instantaneous(F.fieldAt(params(),state.target),state.t);
+ const prm=params(),phasor=F.fieldAt(prm,state.target),inst=F.instantaneous(phasor,state.t);
+ const cycle=updateTargetCycleMaximum(prm);
  $("targetEStat").textContent=sci(inst.E);
+ $("targetEMaxStat").textContent=sci(cycle.Emax);
  $("targetSStat").textContent=sci(inst.S);
+ $("targetSMaxStat").textContent=sci(cycle.Smax);
  updateStudyPlaneTitle();
  const axis=selectedStudyAxis(),view=state.values&&state.values[axis];
  if(!view||!view.vals.length)return;
