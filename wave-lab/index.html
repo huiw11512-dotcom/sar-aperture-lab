@@ -7,12 +7,12 @@
  <section class="section"><h2>空间与口径</h2>
   <div class="fields">
    <div><label for="freq">频率 / GHz</label><input id="freq" type="number" min=".2" max="100" step="any" value="10"></div>
-   <div><label for="resolution">网格精度</label><select id="resolution"><option value="320">320² × 3</option><option value="512" selected>512² × 3</option><option value="768">768² × 3</option><option value="1000">1000² × 3</option></select></div>
+   <div><label for="pointsPerWave">每波长采样</label><select id="pointsPerWave"><option value="8" selected>8 点 / λ</option><option value="16">16 点 / λ</option></select></div>
    <div><label for="apX">口径长 / λ</label><input id="apX" type="number" min=".5" max="30" value="5" step=".5"></div>
    <div><label for="apY">口径宽 / λ</label><input id="apY" type="number" min=".5" max="30" value="5" step=".5"></div>
    <div><label for="eta">口面效率</label><input id="eta" type="number" min=".01" max="1" value=".7" step=".05"></div>
    <div><label>波长</label><div id="lambdaValue" class="meta" style="padding-top:12px;font-weight:750">29.98 mm</div></div>
-  </div>
+  </div><div class="sampling-readout" id="sampleInfo" aria-live="polite">按空间范围自动计算网格</div>
  </section>
  <section class="section"><h2>空间显示范围 / m</h2><div class="fields">
   <div><label for="Lx">X 宽度</label><input id="Lx" type="number" min=".05" max="500" step="any" value="50"></div>
@@ -40,23 +40,35 @@
  <div id="nodes"></div></section>
 </aside>
 <main class="main">
- <header class="headline"><h1>三维空间场 · 正交切片</h1><div class="top-actions"><span class="status" id="status">就绪</span><a href="./validation/" style="color:#678392;font-size:13px">数值验收</a><button id="exportPNG" class="primary">导出论文图</button><select id="csvAxis" class="select-inline" aria-label="CSV导出截面"><option value="x">YZ</option><option value="y">XZ</option><option selected value="z">XY</option></select><button id="exportCSV">导出CSV</button></div></header>
+ <header class="headline"><h1>三维空间场 · 正交切片</h1><div class="top-actions"><span class="status" id="status">就绪</span><button id="exportPNG" class="primary">导出论文图</button><select id="csvAxis" class="select-inline" aria-label="CSV导出截面"><option value="x">YZ</option><option value="y">XZ</option><option selected value="z">XY</option></select><button id="exportCSV">导出CSV</button></div></header>
  <div class="workbar card"><button id="play" class="primary">▶ 播放</button><button id="reset">复位</button>
    <div class="timeline"><label for="time">周期时刻 <span id="timeValue" class="value">0.000 T</span></label><input type="range" id="time" min="0" max="1" step=".001" value="0"></div>
    <div class="speed"><label for="speed">播放速度</label><select id="speed"><option value=".25">慢</option><option value=".5" selected>中</option><option value="1">快</option></select></div>
  </div>
  <section class="figure card"><div class="fig-head"><h2>空间场分布</h2><div class="mode"><button id="modeE" class="selected">瞬时电场 |E|</button><button id="modeS">瞬时功率通量 |S|</button></div></div>
   <div class="figure-layout">
-   <div class="slice"><h3>YZ 截面 <span id="labelX">x = 0 m</span></h3><canvas id="plotX" width="580" height="675" aria-label="YZ 截面场图"></canvas></div>
-   <div class="slice"><h3>XZ 截面 <span id="labelY">y = 0 m</span></h3><canvas id="plotY" width="580" height="675" aria-label="XZ 截面场图"></canvas></div>
-   <div class="slice"><h3>XY 截面 <span id="labelZ">z = 50 m</span></h3><canvas id="plotZ" width="580" height="675" aria-label="XY 截面场图"></canvas></div>
-  </div><div id="sampleWarning" class="hintline"></div>
+   <div class="slice"><h3>YZ 截面 <span id="labelX">x = 0 m</span></h3><canvas id="plotX" width="580" height="568" aria-label="YZ 截面场图"></canvas></div>
+   <div class="slice"><h3>XZ 截面 <span id="labelY">y = 0 m</span></h3><canvas id="plotY" width="580" height="568" aria-label="XZ 截面场图"></canvas></div>
+   <div class="slice"><h3>XY 截面 <span id="labelZ">z = 50 m</span></h3><canvas id="plotZ" width="580" height="568" aria-label="XY 截面场图"></canvas></div>
+  </div>
+  <div class="shared-scale" aria-label="三张切片统一色标">
+    <span class="shared-scale-unit" id="scaleUnit">瞬时电场强度 · V/m</span>
+    <div class="shared-scale-track">
+      <span>0</span><div class="shared-scale-gradient" id="scaleGradient"></div><span id="scaleMax">—</span>
+    </div>
+  </div>
+  <div class="resolution-actions">
+    <div class="resolution-summary" id="resolutionSummary">采样计算中…</div>
+    <button id="localDetail" type="button">局部精细查看</button>
+    <button id="restoreOverview" type="button" disabled>恢复全域</button>
+  </div>
+  <div id="sampleWarning" class="hintline"></div>
  </section>
  <div class="lower">
   <section class="card panel"><h2>空间几何预览</h2><svg id="scene3d" class="scene" viewBox="0 0 650 275" aria-label="三维源节点、目标及切片的轴测示意"></svg><div class="info" id="geometryInfo"></div><details class="details"><summary>各节点到目标与观察点的距离</summary><div id="distances"></div></details></section>
   <section class="card panel"><h2>各节点 · 观察点时域电场</h2><canvas id="trace" class="trace" width="860" height="310"></canvas><div id="legend" class="legend"></div><div class="info" id="probeInfo"></div></section>
  </div>
- <footer class="footer"><a href="./legacy/">二维旧版</a><a href="https://github.com/huiw11512-dotcom/sar-aperture-lab/tree/main/wave-lab" target="_blank" rel="noreferrer">GitHub 源码 ↗</a></footer>
+ <footer class="footer"><a href="./validation/">数值验收</a><a href="./legacy/">二维旧版</a><a href="https://github.com/huiw11512-dotcom/sar-aperture-lab/tree/main/wave-lab" target="_blank" rel="noreferrer">GitHub 源码 ↗</a></footer>
 </main></div>
 <div id="lens" class="lens" aria-hidden="true"><div class="lens-head">局部放大 · 5×</div><canvas id="lensCanvas" width="444" height="444"></canvas><div class="lens-pos" id="lensCoord">—</div><div class="lens-val" id="lensReading">—</div></div>
 <script src="./physics3d.js"></script><script src="./app3d.js"></script>
