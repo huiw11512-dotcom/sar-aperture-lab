@@ -6,7 +6,8 @@ const state={
  freq:10,apX:5,apY:5,eta:.7,n:1000,pointsPerWave:8,centerX:0,centerY:0,savedOverview:null,Lx:50,Ly:50,Lz:60,zMin:0,
  target:{x:0,y:0,z:50},cuts:{x:0,y:0,z:50},
  nodes:[{x:-3,y:-3,z:0,phase:0,power:1},{x:3,y:-3,z:0,phase:0,power:1},{x:-3,y:3,z:0,phase:0,power:1},{x:3,y:3,z:0,phase:0,power:1}],
- t:0,playing:false,speed:.5,mode:"E",data:null,rasters:{},scaleFactor:{E:1,S:1},tracePol:0
+ t:0,playing:false,speed:.5,mode:"E",data:null,rasters:{},scaleFactor:{E:1,S:1},tracePol:0,
+ studyPlane:{axis:"x",coord:0,active:false},scanSpan:5,scanResult:null,coherenceRatio:null
 };
 let worker=null,job=0,timer=null,lastTime=0,lastPaint=0,hover=null,rendering=false;
 const fmt=(v,d=2)=>Number(v).toFixed(d);
@@ -17,6 +18,7 @@ function params(){
   target:{...state.target},cuts:{...state.cuts},centerX:state.centerX,centerY:state.centerY,Lx:state.Lx,Ly:state.Ly,Lz:state.Lz,zMin:state.zMin};
 }
 function layoutNodes(count){
+ count=F.clamp(Math.round(Number(count)||4),1,64);$("count").value=String(count);
  const old=state.nodes.slice();
  const cols=Math.ceil(Math.sqrt(count)),rows=Math.ceil(count/cols);
  state.nodes=Array.from({length:count},(_,i)=>old[i]||{x:(i%cols-(cols-1)/2)*6,y:(Math.floor(i/cols)-(rows-1)/2)*6,z:0,phase:0,power:1});
@@ -31,11 +33,11 @@ function renderNodes(){
   const cells=document.createElement("div");cells.className="node-fields";
   [["x","X / m"],["y","Y / m"],["z","Z / m"],["phase","相位 / °"],["power","功率 / W"]].forEach(pair=>{
    const d=document.createElement("div"),label=document.createElement("label"),input=document.createElement("input");
-   const key=pair[0];label.textContent=pair[1];input.type="number";input.step="any";input.value=nd[key];input.min=key==="power"?"0":"";if(key==="power")input.max="10";
+   const key=pair[0];label.textContent=pair[1];input.type="number";input.step="any";input.value=nd[key];input.min=key==="power"?"0":"";
    input.setAttribute("aria-label","节点"+(i+1)+" "+pair[1]);
    input.addEventListener("change",()=>{
     const num=Number(input.value);
-    if(!Number.isFinite(num)||input.value.trim()===""||(key==="power"&&(num<0||num>10))){input.value=nd[key];return;}
+    if(!Number.isFinite(num)||input.value.trim()===""||(key==="power"&&num<0)){input.value=nd[key];return;}
     nd[key]=num;input.value=String(num);queue();
    });
    d.appendChild(label);d.appendChild(input);cells.appendChild(d);
@@ -56,6 +58,8 @@ function bind(){
     const num=Number(input.value);
     if(input.value.trim()===""||!Number.isFinite(num)||Math.abs(num)>1e7){input.value=state.target[axis];return;}
     state.target[axis]=num;state.cuts={...state.target};
+    if(state.studyPlane.active)state.cuts[state.studyPlane.axis]=state.studyPlane.coord;
+    else if(state.studyPlane.axis===axis){state.studyPlane.coord=num;$("studyCoord").value=String(num);}
     if(state.savedOverview){state.centerX=state.target.x;state.centerY=state.target.y;state.zMin=state.target.z-state.Lz/2;syncViewInput();}
     queue();
   });
@@ -86,6 +90,31 @@ function bind(){
  $("time").addEventListener("input",()=>{state.t=Number($("time").value);drawDynamic();});
  $("exportPNG").addEventListener("click",exportPNG);
  $("exportCSV").addEventListener("click",exportCSV);
+ $("exportConfig").addEventListener("click",exportConfig);
+ $("importConfig").addEventListener("click",()=>$("importConfigFile").click());
+ $("importConfigFile").addEventListener("change",e=>{
+  const file=e.target.files&&e.target.files[0];if(file)importConfig(file).finally(()=>{e.target.value="";});
+ });
+ $("studyAxis").addEventListener("change",()=>{
+  const axis=$("studyAxis").value;
+  if(!state.studyPlane.active)state.studyPlane.coord=state.cuts[axis];
+  $("studyCoord").value=String(state.studyPlane.coord);
+ });
+ $("studyCoord").addEventListener("change",()=>{
+  const v=Number($("studyCoord").value);
+  if($("studyCoord").value.trim()===""||!Number.isFinite(v)||Math.abs(v)>1e7){$("studyCoord").value=String(state.studyPlane.coord);return;}
+  state.studyPlane.coord=v;
+ });
+ $("scanSpan").addEventListener("change",()=>{
+  const v=Number($("scanSpan").value);
+  if($("scanSpan").value.trim()===""||!Number.isFinite(v)||v<.1||v>1000){$("scanSpan").value=String(state.scanSpan);return;}
+  state.scanSpan=v;
+ });
+ $("detectStudyPlane").addEventListener("click",detectStudyPlane);
+ $("applyStudyPlane").addEventListener("click",applyStudyPlane);
+ $("projectNodes").addEventListener("click",projectNodesToPlane);
+ $("scanThroughPlane").addEventListener("click",scanThroughPlane);
+ $("exportScan").addEventListener("click",exportScanCSV);
  for(const axis of F.AXES){
   const canvas=$("plot"+axis.toUpperCase());
   canvas.addEventListener("pointermove",e=>showLens(axis,e));
@@ -132,6 +161,7 @@ function restoreOverview(){
  syncViewInput();queue();
 }
 function queue(){
+ state.scanResult=null;drawScanPlot();
  updateSampling();clearTimeout(timer);++job;
  if(worker){worker.terminate();worker=null;}
  renderScene();$("status").textContent="准备计算…";$("exportPNG").disabled=true;$("exportCSV").disabled=true;
@@ -179,7 +209,7 @@ function complete(data,preview=false){
  $("status").textContent=preview?"已显示预览 · 高清计算中":"计算完成";
  $("exportPNG").disabled=preview;$("exportCSV").disabled=preview;
  $("lambdaValue").textContent=fmt(data.lambda*1e3,2)+" mm";
- drawDynamic();
+ drawDynamic();updateTargetCoherence();updateStudyPlaneTitle();
 }
 const paletteE=[[32,58,178],[39,111,236],[46,188,224],[247,249,251],[255,192,110],[237,76,67],[207,25,62]];
 const paletteS=paletteE;
@@ -290,11 +320,12 @@ function drawDynamic(){
   const current={};
   for(const axis of F.AXES)current[axis]=makeValues(axis);
   state.values=current;
-  recolorOnly();
+  recolorOnly();updateStudyReadouts();
  }finally{rendering=false;}
 }
 function updateExtras(){
- for(const a of F.AXES)$("label"+a.toUpperCase()).textContent=a+" = "+fmt(state.target[a],2)+" m";
+ for(const a of F.AXES)$("label"+a.toUpperCase()).textContent=a+" = "+fmt(state.cuts[a],2)+" m";
+ updateStudyPlaneTitle();
 }
 // Orbit camera affects only the 3-D view; it never recomputes the electromagnetic field.
 const camera={yaw:-.62,pitch:.63,zoom:1};
