@@ -63,7 +63,7 @@
     <div class="foot-side">Wave Lab / 物理可视化实验<br>单频、均匀口径、虚拟口面随 T 定向。<br>默认每节点1 W（当前低功率演示范围0–10 W）。<br>不连接真实发射硬件，也不自动修改源相位。</div>
   </aside>
   <main class="main">
-    <header class="top"><div><div class="eyebrow">WAVE PROPAGATION / INTERFERENCE</div><h1>空间干涉场分析</h1><p>矩形口径方向图 · 球面传播路径 · 单周期电磁场与法向能流</p></div><div class="actions"><span class="status" id="status">就绪</span><button class="button" id="csv">CSV 数据</button><button class="button primary" id="png">论文图 PNG</button></div></header>
+    <header class="top"><div><div class="eyebrow">WAVE PROPAGATION / INTERFERENCE</div><h1>空间干涉场分析</h1><p>矩形口径方向图 · 球面传播路径 · 单周期电磁场与法向能流</p></div><div class="actions"><span class="status" id="status">就绪</span><a class="button" style="text-decoration:none" href="./validation/" title="独立有限口径积分、网格收敛与功率闭合验收报告">数值验收报告 ↗</a><button class="button" id="csv">CSV 数据</button><button class="button primary" id="png">论文图 PNG</button></div></header>
     <div class="workbar"><button class="button primary play" id="play">▶ 播放</button><button class="button" id="reset">复位</button><div class="timeline"><label for="time">t / T</label><input type="range" id="time" min="0" max="1" value="0" step="0.001"><output id="timeVal">0.000 T</output></div><div class="speed"><label for="speed">播放速度</label><select id="speed"><option value="0.2">0.2×</option><option value="0.5" selected>0.5×</option><option value="1">1×</option></select></div></div>
     <section class="probe-panel target-panel" aria-label="独立目标位置设置">
       <div><div class="head">目标位置 T <span class="target-chip">天线朝向联动 · 重新计算</span></div><div class="hint">设置独立目标 (x, y, z)。各节点的虚拟天线指向随 T 改变，并重新计算整个水平截面的矢量场；在图上标注 T 的 XY 投影。观察点 Q 始终独立，用于读数。</div></div>
@@ -261,7 +261,7 @@ sampleCheck();drawFigure($('mean'),2,true);dynamic();$('status').textContent='�
 function sampleCheck(){const l=state.data.lam,nd=state.nodes;let maxDu=0,maxDv=0;
 for(const [x,y] of [[0,0],[-state.Lx/2,-state.Ly/2],[state.Lx/2,state.Ly/2],[-state.Lx/2,state.Ly/2],[state.Lx/2,-state.Ly/2]]){const uv=nd.map(q=>{const dx=x-q.x,dy=y-q.y,r=Math.hypot(dx,dy,state.H);return [dx/r,dy/r]});for(let a=0;a<uv.length;a++)for(let b=a+1;b<uv.length;b++){maxDu=Math.max(maxDu,Math.abs(uv[a][0]-uv[b][0]));maxDv=Math.max(maxDv,Math.abs(uv[a][1]-uv[b][1]));}}
 const fx=maxDu?l/maxDu:Infinity,fy=maxDv?l/maxDv:Infinity,worst=Math.min(fx/(state.Lx/state.n),fy/(state.Ly/state.n));const a=Math.max(state.apX,state.apY)*l,far=2*a*a/l;
-let s=`空间采样：最小估计干涉周期约 ${fmt(Math.min(fx,fy)*100,1)} cm，约 ${fmt(worst,1)} 像素/周期（建议 ≥6）。`;if(state.H<far)s+=` 单口径远场判据约 ${fmt(far,2)} m；当前高度不满足。`;
+let s=`空间采样：最小估计干涉周期约 ${fmt(Math.min(fx,fy)*100,1)} cm，约 ${fmt(worst,1)} 像素/周期（建议 ≥6）。`;if(worst<6)s+=' 当前网格存在漏采干涉峰风险，最大值不可视为已收敛。';if(state.H<far)s+=` 单口径远场判据约 ${fmt(far,2)} m；当前高度不满足。`;s+=' 绝对功率归一化尚需物理闭合验证，详见“数值验收报告”。';
 const el=$('sampleAlert');el.textContent=s;el.classList.toggle('warn',worst<6||state.H<far)}
 const signed=[[49,67,126],[92,146,187],[209,226,234],[250,251,249],[242,206,178],[200,113,95],[148,47,56]];
 const viridis=[[68,1,84],[71,44,122],[59,81,139],[44,113,142],[33,145,140],[94,201,98],[253,231,37]];
