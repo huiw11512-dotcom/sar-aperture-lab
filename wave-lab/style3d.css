@@ -113,6 +113,8 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
 .scene-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .scene-heading h2{margin:0 0 13px;font-size:19px}
 #studyPlaneTitle{font-size:15px;font-weight:650;color:#436678;margin-bottom:13px}
+/* Restore the simpler main view: hide the experimental coplanar-analysis UI. */
+#studyControls,.study-panel{display:none!important}
 .study-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:6px 0 22px}
 .study-metric{border:1px solid #dce7eb;background:#fbfdfe;border-radius:11px;padding:15px;min-width:0}
 .study-metric label{font-size:14px;color:#526f80;margin-bottom:8px}
