@@ -204,14 +204,11 @@ function pointingFrame(nd){
   let length=Math.hypot(nx,ny,nz);
   if(length<1e-9){nx=0;ny=0;nz=1;length=1;}
   nx/=length;ny/=length;nz/=length;
-  // Project a stable global reference into the plane perpendicular to n.
-  // Switch references near the x direction to avoid dividing by zero.
-  let bx=1,by=0,bz=0;
-  if(Math.abs(nx)>.92){bx=0;by=1;}
-  const dot=nx*bx+ny*by+nz*bz;
-  let ux=bx-dot*nx,uy=by-dot*ny,uz=bz-dot*nz;
-  const mag=Math.hypot(ux,uy,uz);ux/=mag;uy/=mag;uz/=mag;
-  const vx=ny*uz-nz*uy,vy=nz*ux-nx*uz,vz=nx*uy-ny*ux;
+  // A continuous minimal rotation taking the global +z axis to boresight.
+  // The app restricts target z to nonnegative values, so 1+nz remains stable.
+  const den=1+nz;
+  const ux=1-nx*nx/den,uy=-nx*ny/den,uz=-nx;
+  const vx=-nx*ny/den,vy=1-ny*ny/den,vz=-ny;
   return {nx,ny,nz,ux,uy,uz,vx,vy,vz};
 }
 function addSource(acc,x,y,nd,k,lam){
