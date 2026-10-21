@@ -679,10 +679,20 @@ function showLens(axis,e){
  const cx=(uv.u*n-ix)/sw*444,cy=(uv.v*n-iy)/sw*444;g.strokeStyle="#fff";g.lineWidth=3;g.strokeRect(cx-11,cy-11,22,22);
  const xyz=F.planePoint(params(),axis,uv.u,uv.v),a=state.values[axis],i=F.clamp(Math.floor(uv.u*n),0,n-1),j=F.clamp(Math.floor(uv.v*n),0,n-1);
  $("lensCoord").textContent=F.AXES.map(k=>k+"="+fmt(xyz[k],2)).join("  ")+" m";
- const direct=F.instantaneous(F.fieldAt(params(),xyz),state.t);
- $("lensReading").textContent=sci(state.mode==="E"?direct.E:direct.S)+(state.mode==="E"?" V/m":" W/cm²");
+ const field=F.fieldAt(params(),xyz);
+ const direct=F.instantaneous(field,state.t);
+ const unit=state.mode==="E"?" V/m":" W/cm²";
+ const current=state.mode==="E"?direct.E:direct.S;
+ let cycleMax=0;
+ for(let k=0;k<512;k++){
+  const sample=F.instantaneous(field,k/512);
+  const value=state.mode==="E"?sample.E:sample.S;
+  if(value>cycleMax)cycleMax=value;
+ }
+ $("lensReading").textContent="瞬时值："+sci(current)+unit;
+ $("lensMaxReading").textContent="周期最大值："+sci(cycleMax)+unit;
  const div=$("lens");div.classList.add("show");div.setAttribute("aria-hidden","false");
- const W=244,H=322;
+ const W=244,H=354;
  let left=e.clientX+17,top=e.clientY+15;
  if(left+W>window.innerWidth-5)left=e.clientX-W-17;
  if(top+H>window.innerHeight-5)top=e.clientY-H-17;
