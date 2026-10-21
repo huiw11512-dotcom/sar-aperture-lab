@@ -23,15 +23,15 @@
     return {nx,ny,nz,ux,uy,uz,vx,vy,vz};
   }
   function planePoint(p,axis,u,v){
-    const x=(u-.5)*p.Lx, y=(u-.5)*p.Ly;
-    if(axis==="x") return {x:p.cuts.x,y:(u-.5)*p.Ly,z:p.zMin+(1-v)*p.Lz};
-    if(axis==="y") return {x:(u-.5)*p.Lx,y:p.cuts.y,z:p.zMin+(1-v)*p.Lz};
-    return {x:(u-.5)*p.Lx,y:(.5-v)*p.Ly,z:p.cuts.z};
+    const cx=p.centerX||0,cy=p.centerY||0;
+    if(axis==="x") return {x:p.cuts.x,y:cy+(u-.5)*p.Ly,z:p.zMin+(1-v)*p.Lz};
+    if(axis==="y") return {x:cx+(u-.5)*p.Lx,y:p.cuts.y,z:p.zMin+(1-v)*p.Lz};
+    return {x:cx+(u-.5)*p.Lx,y:cy+(.5-v)*p.Ly,z:p.cuts.z};
   }
   function ranges(p,axis){
-    if(axis==="x")return {hMin:-p.Ly/2,hMax:p.Ly/2,vMin:p.zMin,vMax:p.zMin+p.Lz,hName:"y",vName:"z",constant:"x"};
-    if(axis==="y")return {hMin:-p.Lx/2,hMax:p.Lx/2,vMin:p.zMin,vMax:p.zMin+p.Lz,hName:"x",vName:"z",constant:"y"};
-    return {hMin:-p.Lx/2,hMax:p.Lx/2,vMin:-p.Ly/2,vMax:p.Ly/2,hName:"x",vName:"y",constant:"z"};
+    if(axis==="x")return {hMin:(p.centerY||0)-p.Ly/2,hMax:(p.centerY||0)+p.Ly/2,vMin:p.zMin,vMax:p.zMin+p.Lz,hName:"y",vName:"z",constant:"x"};
+    if(axis==="y")return {hMin:(p.centerX||0)-p.Lx/2,hMax:(p.centerX||0)+p.Lx/2,vMin:p.zMin,vMax:p.zMin+p.Lz,hName:"x",vName:"z",constant:"y"};
+    return {hMin:(p.centerX||0)-p.Lx/2,hMax:(p.centerX||0)+p.Lx/2,vMin:(p.centerY||0)-p.Ly/2,vMax:(p.centerY||0)+p.Ly/2,hName:"x",vName:"y",constant:"z"};
   }
   function localPoint(p,axis,x,y){
     const r=ranges(p,axis),u=(x-r.hMin)/(r.hMax-r.hMin),v=(r.vMax-y)/(r.vMax-r.vMin);
