@@ -13,7 +13,7 @@
 </div>
 <h2>一、有限口径积分对照</h2>
 <div class="panels"><section class="panel"><h3>复场误差随距离变化</h3><svg class="chart" id="axial" viewBox="0 0 480 275" role="img" aria-label="口径距离与复场近似误差"></svg><p class="footnotes">采用48×48高斯积分，积分核 exp(jkR)/R，配简化倾角因子；这属于标量衍射参考，不是完整Maxwell全波解。</p></section>
-<section class="panel"><h3>网格间距与面积平均误差</h3><svg class="chart" id="grid" viewBox="0 0 480 275" role="img" aria-label="网格收敛误差"></svg><p class="footnotes">2.4 m与50 m截面都显示面积平均统计逐渐收敛；但不能据此认为空间最大值也已收敛。</p></section></div>
+<section class="panel"><h3>网格间距与离散最大值偏差</h3><svg class="chart" id="grid" viewBox="0 0 480 275" role="img" aria-label="网格收敛误差"></svg><p class="footnotes">离散最大值的误差不一定随网格加密而单调下降；面积平均值已收敛，也不能证明峰值可靠。</p></section></div>
 <h2>二、采样收敛结果</h2>
 <section class="panel tablewrap"><table><thead><tr><th>截面宽度</th><th>网格</th><th>间距 / mm</th><th>平均偏差</th><th>采样最大值偏差</th></tr></thead><tbody id="gr"></tbody></table><p class="footnotes">精细网格是本轮离散采样参考，不是连续空间最大值的数学证明。不同分辨率的极值偏差不保证单调下降。</p></section>
 <h2>三、单天线与物理量纲</h2><section class="panel"><p>默认1 W、口面效率系数0.7、10 GHz、5λ × 5λ，按现有增益公式获得 <b>G₀ = 219.9115（23.42 dBi）</b>。50 m轴向点的远场参考为：峰值电场 <b>2.2966 V/m</b>、周期平均通量 <b>7.00 × 10⁻⁷ W/cm²</b>。</p><p>48×48与80×80有限口径高斯积分在50 m轴向结果一致；软件JavaScript和独立Python镜像在两个虚拟目标状态、三个观察位置的坡印廷通量逐点匹配至浮点精度。</p><div class="flag"><strong>未解决的物理模型闭合问题</strong><p>当前用低于1的口面效率系数缩放理想均匀口径增益，却仍沿用均匀照明的 sinc×sinc 方向图。在前半球进行角域功率积分，只得到约 <b>0.674 × 输入参考功率</b>。这反映模型对口面效率、方向图归一化和总辐射功率的定义尚不完全自洽；不应将软件中的绝对 W/cm² 数字认定为已完成能量守恒定标的结果。</p></div></section>
@@ -35,5 +35,5 @@ str+='<text x="'+(left+ww/2)+'" y="'+(H-5)+'" text-anchor="middle" font-size="11
 s.innerHTML=str;
 }
 chart('axial',[axial],.3,110,.3,200,'Distance z (m)','Complex field error (%)');
-chart('grid',[grid.filter(v=>v[0]===2.4).map(v=>[v[2]/1000,Math.max(1e-5,Math.abs(v[3]))]),grid.filter(v=>v[0]===50).map(v=>[v[2]/1000,Math.max(1e-5,Math.abs(v[3]))])],.001, .16,.00001,.1,'Grid pitch (m)','Area-mean deviation (%)');
+chart('grid',[grid.filter(v=>v[0]===2.4).map(v=>[v[2]/1000,Math.max(1e-5,Math.abs(v[4]))]),grid.filter(v=>v[0]===50).map(v=>[v[2]/1000,Math.max(1e-5,Math.abs(v[4]))])],.001, .16,.001,20,'Grid pitch (m)','Sampled-maximum difference (%)');
 </script></body></html>
