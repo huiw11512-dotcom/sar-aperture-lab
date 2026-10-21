@@ -49,7 +49,7 @@
         <div class="control"><label for="eta">口面效率 η</label><input type="number" id="eta" min="0.01" max="1" value="0.7" step="0.05"></div>
         <div class="control"><label>实际口径</label><div id="apPhysical" style="padding:9px 0;font:11px var(--mono);color:#216e7e">0.150 × 0.150 m</div></div>
       </div>
-      <p class="minor">固定采用均匀照明矩形口径的 sinc × sinc 场方向图；口面法线均沿 +z。不再单独输入波束宽度。</p>
+      <p class="minor">采用均匀照明矩形口径的 sinc × sinc 场方向图。各节点的虚拟口面法线朝向目标 T；无需输入3 dB波束宽度。</p>
     </section>
     <section class="section">
       <h3>节点布置 <span>z = 0 m</span></h3>
@@ -60,13 +60,13 @@
       <p class="minor">节点位置用地面坐标 x、y（米）输入。相位表示独立源的初始相位；功率为单路输入参考值，范围0–10 W（默认1 W）。</p>
       <div id="nodes" class="nodetable"></div>
     </section>
-    <div class="foot-side">Wave Lab / 物理可视化实验<br>单频、均匀口径、远场单元方向图。<br>功率输入上限为10 W/节点；非全波与非目标系统模型。</div>
+    <div class="foot-side">Wave Lab / 物理可视化实验<br>单频、均匀口径、虚拟口面随 T 定向。<br>默认每节点1 W（当前低功率演示范围0–10 W）。<br>不连接真实发射硬件，也不自动修改源相位。</div>
   </aside>
   <main class="main">
     <header class="top"><div><div class="eyebrow">WAVE PROPAGATION / INTERFERENCE</div><h1>空间干涉场分析</h1><p>矩形口径方向图 · 球面传播路径 · 单周期电磁场与法向能流</p></div><div class="actions"><span class="status" id="status">就绪</span><button class="button" id="csv">CSV 数据</button><button class="button primary" id="png">论文图 PNG</button></div></header>
     <div class="workbar"><button class="button primary play" id="play">▶ 播放</button><button class="button" id="reset">复位</button><div class="timeline"><label for="time">t / T</label><input type="range" id="time" min="0" max="1" value="0" step="0.001"><output id="timeVal">0.000 T</output></div><div class="speed"><label for="speed">播放速度</label><select id="speed"><option value="0.2">0.2×</option><option value="0.5" selected>0.5×</option><option value="1">1×</option></select></div></div>
     <section class="probe-panel target-panel" aria-label="独立目标位置设置">
-      <div><div class="head">目标位置 T <span class="target-chip">独立三维坐标</span></div><div class="hint">设置独立目标 (x, y, z)。在水平截面上标注其 XY 投影，并给出各节点到目标的几何距离；目标不会替代观察点 Q，也不改变当前固定口径朝向和场强计算。</div></div>
+      <div><div class="head">目标位置 T <span class="target-chip">天线朝向联动 · 重新计算</span></div><div class="hint">设置独立目标 (x, y, z)。各节点的虚拟天线指向随 T 改变，并重新计算整个水平截面的矢量场；在图上标注 T 的 XY 投影。观察点 Q 始终独立，用于读数。</div></div>
       <div class="inputs">
         <div><label for="targetX">目标 x / m</label><input id="targetX" type="number" step="any" value="0" inputmode="decimal"></div>
         <div><label for="targetY">目标 y / m</label><input id="targetY" type="number" step="any" value="0" inputmode="decimal"></div>
@@ -76,7 +76,7 @@
       <div class="distance-info" id="targetDistances">节点至目标的三维距离：计算中…</div>
     </section>
     <section class="probe-panel" aria-label="观察位置分析">
-      <div><div class="head">空间观察点 <span style="font-weight:400;color:#84929c">· 不改变天线朝向</span></div><div class="hint">输入 x、y 或直接点击上方场图选取 Q，分析该位置的到达电场、时域波形和各节点传播距离；z 等于当前截面高度。</div></div>
+      <div><div class="head">空间观察点 Q <span style="font-weight:400;color:#84929c">· 仅读取场强，不改变天线朝向</span></div><div class="hint">输入 x、y 或直接点击上方场图选取 Q，分析该位置的到达电场、时域波形和各节点传播距离；z 等于当前截面高度。</div></div>
       <div class="inputs"><div><label for="probeX">观察 x / m</label><input id="probeX" type="number" step="any" value="0" inputmode="decimal"></div><div><label for="probeY">观察 y / m</label><input id="probeY" type="number" step="any" value="0" inputmode="decimal"></div><button class="button" id="probeCenter" type="button">返回原点</button></div>
       <div class="distance-info" id="probeDistances">各路传播距离：计算中…</div>
     </section>
@@ -129,10 +129,10 @@ for(const [id,key] of [['targetX','tx'],['targetY','ty'],['targetZ','tz']]){
   $(id).addEventListener('change',e=>{
     const raw=e.target.value.trim(),next=Number(raw);
     if(raw===''||!Number.isFinite(next)||Math.abs(next)>1e6||(key==='tz'&&next<0)){e.target.value=state[key];return;}
-    state[key]=next;dynamic();
+    state[key]=next;queue();
   });
 }
-$('targetDefault').addEventListener('click',()=>{state.tx=0;state.ty=0;state.tz=state.H;dynamic()});
+$('targetDefault').addEventListener('click',()=>{state.tx=0;state.ty=0;state.tz=state.H;queue()});
 $('png').addEventListener('click',exportPNG);$('csv').addEventListener('click',exportCSV);
 for(const [mode,name] of ['field','square','mean'].entries()){
   const cv=$(name);
@@ -195,26 +195,55 @@ function updateLens(){
 // Gain(boresight) = 4π η_ap A/λ². E_peak = √(2 Z0 P G0 / (4π r²)) * signed aperture factor.
 // Each E vector is the global x-polarization projected into the plane orthogonal to the local propagation vector.
 // H = k̂ × E / Z0; grid Sz_avg = 1/2 Re(E × H*)_z; Sz_instant = [E(t) × H(t)]_z.
-function addSource(acc,x,y,nd,k,lam){if(!(nd.power>0))return;
-const vx=x-nd.x,vy=y-nd.y,r=Math.hypot(vx,vy,state.H),dx=vx/r,dy=vy/r,dz=state.H/r;
-const pat=sinc(Math.PI*state.apX*dx)*sinc(Math.PI*state.apY*dy);
-// 10 W upper limit per source, allowing low-power reference-field visualization only.
-const G0=4*Math.PI*state.eta*state.apX*state.apY;
-const eAmp=Math.sqrt(2*Z0*nd.power*G0/(4*Math.PI*r*r))*pat;
-const den=Math.sqrt(Math.max(1e-16,1-dx*dx));
-const px=(1-dx*dx)/den,py=-dx*dy/den,pz=-dx*dz/den;
-const ex=eAmp*px,ey=eAmp*py,ez=eAmp*pz;
-const hx=(dy*ez-dz*ey)/Z0,hy=(dz*ex-dx*ez)/Z0;
-const ph=(k*r+radians(nd.phase))%TWO,co=Math.cos(ph),si=Math.sin(ph);
-acc.erx+=ex*co;acc.eix+=ex*si;acc.ery+=ey*co;acc.eiy+=ey*si;
-acc.hrx+=hx*co;acc.hix+=hx*si;acc.hry+=hy*co;acc.hiy+=hy*si;
+// Each antenna uses a normalized, right-handed local aperture frame:
+// n = antenna boresight toward target T; u,v = aperture long/short axes.
+// These are reference-field *virtual* orientations, not mechanical steering commands.
+// The four-node system is not approximated by one common far-field plane wave.
+function pointingFrame(nd){
+  let nx=state.tx-nd.x,ny=state.ty-nd.y,nz=state.tz;
+  let length=Math.hypot(nx,ny,nz);
+  if(length<1e-9){nx=0;ny=0;nz=1;length=1;}
+  nx/=length;ny/=length;nz/=length;
+  // Project a stable global reference into the plane perpendicular to n.
+  // Switch references near the x direction to avoid dividing by zero.
+  let bx=1,by=0,bz=0;
+  if(Math.abs(nx)>.92){bx=0;by=1;}
+  const dot=nx*bx+ny*by+nz*bz;
+  let ux=bx-dot*nx,uy=by-dot*ny,uz=bz-dot*nz;
+  const mag=Math.hypot(ux,uy,uz);ux/=mag;uy/=mag;uz/=mag;
+  const vx=ny*uz-nz*uy,vy=nz*ux-nx*uz,vz=nx*uy-ny*ux;
+  return {nx,ny,nz,ux,uy,uz,vx,vy,vz};
+}
+function addSource(acc,x,y,nd,k,lam){
+  if(!(nd.power>0))return;
+  const vx=x-nd.x,vy=y-nd.y,r=Math.hypot(vx,vy,state.H);
+  const dx=vx/r,dy=vy/r,dz=state.H/r;
+  const f=nd._frame||pointingFrame(nd);
+  const forward=dx*f.nx+dy*f.ny+dz*f.nz;
+  if(forward<=0)return;
+  const u=dx*f.ux+dy*f.uy+dz*f.uz,v=dx*f.vx+dy*f.vy+dz*f.vz;
+  // Uniformly illuminated rectangular aperture in its rotated local frame.
+  // The obliquity factor smoothly models forward radiation; no true sidelobes/coupling.
+  const pat=sinc(Math.PI*state.apX*u)*sinc(Math.PI*state.apY*v)*(1+forward)*.5;
+  const G0=4*Math.PI*state.eta*state.apX*state.apY;
+  const eAmp=Math.sqrt(2*Z0*nd.power*G0/(4*Math.PI*r*r))*pat;
+  // Electric polarization: project aperture local-u axis into s-perpendicular plane.
+  const pd=f.ux*dx+f.uy*dy+f.uz*dz;
+  let px=f.ux-pd*dx,py=f.uy-pd*dy,pz=f.uz-pd*dz;
+  const pm=Math.max(1e-12,Math.hypot(px,py,pz));
+  px/=pm;py/=pm;pz/=pm;
+  const ex=eAmp*px,ey=eAmp*py,ez=eAmp*pz;
+  const hx=(dy*ez-dz*ey)/Z0,hy=(dz*ex-dx*ez)/Z0;
+  const ph=(k*r+radians(nd.phase))%TWO,co=Math.cos(ph),si=Math.sin(ph);
+  acc.erx+=ex*co;acc.eix+=ex*si;acc.ery+=ey*co;acc.eiy+=ey*si;
+  acc.hrx+=hx*co;acc.hix+=hx*si;acc.hry+=hy*co;acc.hiy+=hy*si;
 }
 function emptyAcc(){return {erx:0,eix:0,ery:0,eiy:0,hrx:0,hix:0,hry:0,hiy:0}}
 function pointPhasor(x,y,nodes=state.nodes){const lam=C/(state.freq*1e9),k=TWO/lam,acc=emptyAcc();for(const nd of nodes)addSource(acc,x,y,nd,k,lam);return acc}
 function sourcePhasors(x,y){return state.nodes.map(nd=>pointPhasor(x,y,[nd]));}
 const meanFlux=p=>0.5*(p.erx*p.hry+p.eix*p.hiy-p.ery*p.hrx-p.eiy*p.hix)/10000;
 function snapshot(p,t){const co=Math.cos(TWO*t),si=Math.sin(TWO*t),ex=p.erx*co+p.eix*si,ey=p.ery*co+p.eiy*si,hx=p.hrx*co+p.hix*si,hy=p.hry*co+p.hiy*si;return {ex,sz:(ex*hy-ey*hx)/10000}}
-function computeData(n){const size=n*n,fields={};for(const key of ['erx','eix','ery','eiy','hrx','hix','hry','hiy','szAvg'])fields[key]=new Float32Array(size);
+function computeData(n){for(const nd of state.nodes)nd._frame=pointingFrame(nd);const size=n*n,fields={};for(const key of ['erx','eix','ery','eiy','hrx','hix','hry','hiy','szAvg'])fields[key]=new Float32Array(size);
 const lam=C/(state.freq*1e9),k=TWO/lam;
 for(let j=0;j<n;j++){const y=(.5-(j+.5)/n)*state.Ly;for(let i=0;i<n;i++){
 const x=((i+.5)/n-.5)*state.Lx,p=j*n+i,acc=emptyAcc();for(const nd of state.nodes)addSource(acc,x,y,nd,k,lam);
@@ -295,7 +324,7 @@ function dl(blob,name){const u=URL.createObjectURL(blob),a=document.createElemen
 async function exportPNG(){if(!state.data)return;const btn=$('png');btn.disabled=true;btn.textContent='生成中…';await new Promise(r=>setTimeout(r,25));const orig={data:state.data,peakEx:state.peakEx,peakFlux:state.peakFlux};
 try{const high=computeData(900);state.data=high;let pkE=0,pkS=0;for(let i=0;i<high.n**2;i++){pkE=Math.max(pkE,Math.hypot(high.fields.erx[i],high.fields.eix[i]));pkS=Math.max(pkS,high.fields.szAvg[i])}state.peakEx=Math.max(1e-10,pkE);state.peakFlux=Math.max(1e-15,pkS*2);
 const W=3240,H=1400,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,H);g.fillStyle='#1e2b38';g.font='bold 42px Arial';g.fillText('Spatial interference: electric field and normal power flux',60,70);g.font='24px Arial';g.fillStyle='#586c7a';g.fillText(`f = ${state.freq} GHz     z = ${state.H} m     aperture = ${state.apX}λ × ${state.apY}λ     N = ${state.N}     t/T = ${fmt(state.t,3)}`,60,113);
-const labels=['(a) Instantaneous Ex (V/m)','(b) Instantaneous Sz (W/cm²)','(c) Cycle-averaged Sz (W/cm²)'];for(let mode=0;mode<3;mode++){const off=document.createElement('canvas');off.width=580;off.height=675;drawFigure(off,mode,false);const x=75+mode*1060,y=183;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.fillStyle='#203b4c';g.font='bold 27px Arial';g.fillText(labels[mode],x+75,162);g.drawImage(off,x,y,1020,1134)}g.fillStyle='#71818a';g.font='19px Arial';g.fillText('Reference per-source power ≤ 10 W; uniform rectangular aperture; spherical propagation; vector transverse fields; far-field element approximation',85,1372);
+const labels=['(a) Instantaneous Ex (V/m)','(b) Instantaneous Sz (W/cm²)','(c) Cycle-averaged Sz (W/cm²)'];for(let mode=0;mode<3;mode++){const off=document.createElement('canvas');off.width=580;off.height=675;drawFigure(off,mode,false);const x=75+mode*1060,y=183;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.fillStyle='#203b4c';g.font='bold 27px Arial';g.fillText(labels[mode],x+75,162);g.drawImage(off,x,y,1020,1134)}g.fillStyle='#71818a';g.font='19px Arial';g.fillText('1 W per source by default; target-oriented virtual apertures; independent phases; spherical propagation; ideal element patterns; educational model',85,1372);
 c.toBlob(b=>{if(b)dl(b,'WaveLab_reference_fields_3240px.png')},'image/png');
 }finally{state.data=orig.data;state.peakEx=orig.peakEx;state.peakFlux=orig.peakFlux;btn.disabled=false;btn.textContent='论文图 PNG';dynamic();}}
 function exportCSV(){if(!state.data)return;const n=state.n,fields=state.data.fields;let lines=['x_m,y_m,Ex_re_Vpm,Ex_im_Vpm,Ex_instant_Vpm,Sz_instant_Wpcm2,Sz_cycle_mean_Wpcm2'];const co=Math.cos(TWO*state.t),si=Math.sin(TWO*state.t);for(let j=0;j<n;j++){const y=(.5-(j+.5)/n)*state.Ly;for(let i=0;i<n;i++){const x=((i+.5)/n-.5)*state.Lx,p=j*n+i,ex=fields.erx[p]*co+fields.eix[p]*si,ey=fields.ery[p]*co+fields.eiy[p]*si,hx=fields.hrx[p]*co+fields.hix[p]*si,hy=fields.hry[p]*co+fields.hiy[p]*si,sz=(ex*hy-ey*hx)/1e4;lines.push([x,y,fields.erx[p],fields.eix[p],ex,sz,fields.szAvg[p]].map(v=>Number(v).toPrecision(9)).join(','))}}
