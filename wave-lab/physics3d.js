@@ -77,11 +77,12 @@
     acc.hry+=hy*co;acc.hiy+=hy*si;
     acc.hrz+=hz*co;acc.hiz+=hz*si;
   }
-  function fieldAt(p,xyz,only){
-    const pc=prepared(p),acc=zero();
-    for(let i=0;i<pc.nodes.length;i++)if(only===undefined||only===i)add(acc,xyz,pc.nodes[i],p,pc);
+  function fieldAtAimed(p,xyz,aimTarget,only){
+    const aimed={...p,target:aimTarget||p.target},pc=prepared(aimed),acc=zero();
+    for(let i=0;i<pc.nodes.length;i++)if(only===undefined||only===i)add(acc,xyz,pc.nodes[i],aimed,pc);
     return acc;
   }
+  function fieldAt(p,xyz,only){ return fieldAtAimed(p,xyz,p.target,only); }
   function instantaneous(a,t){
     const c=Math.cos(TWO*t),s=Math.sin(TWO*t);
     const ex=a.erx*c+a.eix*s,ey=a.ery*c+a.eiy*s,ez=a.erz*c+a.eiz*s;
@@ -111,5 +112,5 @@
     for(const name of NAMES)a[name]=f[name][index];
     return a;
   }
-  root.Field3D={C,Z0,AXES,NAMES,frame,prepared,planePoint,ranges,localPoint,projectPoint,fieldAt,instantaneous,compute,viewAt,clamp};
+  root.Field3D={C,Z0,AXES,NAMES,frame,prepared,planePoint,ranges,localPoint,projectPoint,fieldAt,fieldAtAimed,instantaneous,compute,viewAt,clamp};
 })(typeof self!=="undefined"?self:globalThis);
