@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f7f9fb">
+<title>Wave Lab | 空间干涉场分析</title>
+<style>
+:root{--page:#f6f8fa;--paper:#fff;--ink:#1e2b38;--muted:#647587;--line:#dce4e9;--accent:#087b8b;--faint:#eef5f6;--mono:"IBM Plex Mono","Cascadia Code",Consolas,monospace;--sans:"Source Han Sans SC","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--page);font:13px/1.5 var(--sans)}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #32899d;outline-offset:2px}input[type=number]{font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums}input[type=range]{accent-color:var(--accent)}
+.shell{display:grid;grid-template-columns:310px minmax(0,1fr);min-height:100vh}.side{background:#fff;border-right:1px solid var(--line);padding:25px 21px 22px;max-height:100vh;overflow:auto;position:sticky;top:0;scrollbar-width:thin}.identity{display:flex;align-items:center;gap:11px;margin-bottom:5px}.symbol{width:35px;height:35px;border:1.5px solid var(--accent);border-radius:8px;display:grid;place-items:center;color:var(--accent);font:700 23px var(--mono);line-height:1}.identity strong{font-size:17px;letter-spacing:.1px}.identity small{display:block;color:#85939e;font-size:10px;letter-spacing:.4px;font-family:var(--mono)}.side-sub{color:var(--muted);font-size:11px;margin:4px 0 26px;line-height:1.7}.section{border-top:1px solid var(--line);padding-top:18px;margin-top:19px}.section h3{font-size:12px;font-weight:750;letter-spacing:.3px;margin:0 0 15px;display:flex;justify-content:space-between}.section h3 span{font-size:10px;color:#8a9ca8;font-weight:400;font-family:var(--mono)}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px 10px}.control label{display:block;font-size:11px;font-weight:600;color:#465b6b;margin:0 0 6px}.control input,.control select{background:#fff;color:#263746;border:1px solid #cdd9e0;border-radius:5px;padding:7px 9px;height:35px;width:100%;min-width:0;outline:none}.control input:focus,.control select:focus{border-color:#499baa;box-shadow:0 0 0 2px #e3f3f5}.control .suffix{position:relative}.control .suffix::after{content:attr(data-unit);position:absolute;right:10px;top:9px;color:#8594a2;font:11px var(--mono);pointer-events:none}.control .suffix input{padding-right:37px}.minor{margin:10px 0 0;color:#788894;font-size:10.5px;line-height:1.65}.muted-row{display:flex;justify-content:space-between;gap:5px;margin-top:13px;color:var(--muted);font-size:11px}.muted-row b{color:#246778;font-family:var(--mono)}
+.button{background:#fff;color:#355267;border:1px solid #cfdae2;border-radius:5px;padding:8px 12px;font-size:12px;font-weight:650;white-space:nowrap}.button:hover{background:#eef5f6;border-color:#8db9c3}.button.primary{background:#0c6f80;color:white;border-color:#0c6f80}.button.primary:hover{background:#085a69}.buttonrow{display:flex;gap:7px;flex-wrap:wrap}.buttonrow>.button{flex:1}.nodetable{margin-top:13px;display:grid;gap:8px}.node{border:1px solid #dce6eb;border-radius:6px;padding:10px;background:#fbfdfe}.node-title{display:flex;align-items:center;gap:8px;font-weight:650;font-size:11px;margin-bottom:8px}.node-title i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent)}.node-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.node-grid label{color:#728493;font-size:10px;display:block;margin-bottom:3px}.node-grid input{border:1px solid #d8e2e7;width:100%;min-width:0;height:29px;padding:4px 3px;text-align:center;border-radius:4px;background:white;color:#284052}.node-grid input:focus{outline:1px solid #1f8ca1}.foot-side{font-size:10px;color:#98a6b1;border-top:1px solid var(--line);margin-top:20px;padding-top:14px;line-height:1.7}
+.main{width:100%;min-width:0;max-width:1810px;padding:27px 34px 35px;margin:auto}.top{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:23px}.top .eyebrow{color:var(--accent);font:600 11px var(--mono);letter-spacing:1.1px}.top h1{font-size:26px;font-weight:720;letter-spacing:-.35px;margin:4px 0 7px}.top p{font-size:12px;color:#728392;margin:0}.actions{display:flex;gap:8px;align-items:center}.status{font:11px var(--mono);color:#197481;margin-right:4px;white-space:nowrap}.workbar{background:white;border:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:12px 15px;border-radius:7px;margin-bottom:16px}.workbar .play{min-width:92px}.workbar label{font:600 11px var(--mono);color:#425c6c}.timeline{min-width:150px;flex:1;display:flex;gap:12px;align-items:center}.timeline input{width:100%}.timeline output{font:600 12px var(--mono);color:var(--accent);min-width:62px}.speed{display:flex;gap:8px;align-items:center;white-space:nowrap}.speed select{background:white;border:1px solid #d6e1e7;border-radius:4px;padding:6px 4px;color:#405766}.probe-panel{background:#fff;border:1px solid var(--line);border-radius:7px;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:14px 16px;margin:0 0 16px;flex-wrap:wrap}
+.target-panel{border-color:#e9d6bd;background:#fffefa}.target-panel .head{color:#8b6336}.target-panel .distance-info{color:#756c5e}.target-chip{display:inline-flex;padding:2px 7px;margin-left:7px;border-radius:20px;background:#f7eadb;color:#9a5a24;font-size:10px;font-weight:600}
+.probe-panel .head{font-weight:700;font-size:12px;color:#264456;margin-bottom:4px}
+.probe-panel .hint{font-size:11px;color:#788995;max-width:430px;line-height:1.55}
+.probe-panel .inputs{display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap}
+.probe-panel .inputs label{display:block;font-size:10px;color:#617987;margin-bottom:5px}
+.probe-panel .inputs input{width:122px;padding:7px 8px;border:1px solid #ccdbe3;border-radius:5px;background:white;color:#274050;font-family:var(--mono)}
+.probe-panel .distance-info{flex-basis:100%;border-top:1px solid #eef1f4;padding-top:9px;color:#597283;font:11px/1.6 var(--mono)}
+.probe-panel .distance-info b{color:#214b5f;font-weight:650}
+.overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}.metric{background:white;border:1px solid var(--line);border-radius:7px;padding:13px 15px}.metric .caption{color:#768896;font-size:11px}.metric .value{font:650 19px var(--mono);margin-top:5px;color:#203b4b;white-space:nowrap}.metric .value small{font:11px var(--sans);color:#8594a2}.figure{background:white;border:1px solid #d7e0e5;border-radius:7px;padding:17px 18px 13px;box-shadow:0 2px 5px #152c3d08}.figure-head{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:0 1px 11px}.figure-head strong{font-size:13px;letter-spacing:0}.figure-head span{font:10px var(--mono);color:#6e8491}.plots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.plot-frame{min-width:0}.plot-frame canvas{display:block;width:100%;height:auto;cursor:crosshair;aspect-ratio:580/675}.wave-lens{position:fixed;z-index:60;display:none;width:248px;padding:10px;background:rgba(255,255,255,.98);border:1px solid #ccd9e1;border-radius:9px;box-shadow:0 10px 36px rgba(32,50,68,.17);pointer-events:none;color:#304757;font-family:var(--sans)}.wave-lens.open{display:block}.wave-lens .lens-head{font-size:11px;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin:0 0 7px}.wave-lens .lens-tag{font:600 10px var(--mono);color:#258398}.wave-lens canvas{display:block;width:224px;height:224px;border:1px solid #d9e3e9;background:#f7f9fb;image-rendering:pixelated}.wave-lens .lens-pos{font:11px/1.5 var(--mono);color:#314c60;margin:7px 0 2px}.wave-lens .lens-value{font:11px/1.5 var(--mono);color:#5b6d7b;overflow-wrap:anywhere}.wave-lens .lens-foot{font-size:10px;color:#83929e;margin-top:4px}.plot-title{font-size:12px;text-align:center;margin:1px 0 2px;font-weight:600;color:#344b5a}.plot-desc{font-size:10.5px;color:#7a8c98;text-align:center}.sample-alert{margin-top:12px;border-top:1px solid #e4e9ed;padding-top:11px;color:#6f7f8a;font-size:11px;line-height:1.6}.sample-alert.warn{color:#a5581a}.bottom{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:16px}.subpanel{background:white;border:1px solid var(--line);border-radius:7px;padding:17px 20px}.subpanel h3{font-size:13px;margin:0 0 2px}.subpanel p{margin:0 0 11px;color:#7a8d9a;font-size:11px}.subpanel canvas{display:block;width:100%;height:240px}.node-legend{display:flex;gap:6px 11px;flex-wrap:wrap;align-items:center;padding:8px 0 0;color:#4a5c69;font-size:10px}.node-legend span{white-space:nowrap}.node-legend i{display:inline-block;width:12px;height:3px;vertical-align:middle;margin-right:5px}.note{margin-top:7px;color:#788997;font-size:10px;line-height:1.55}.formula{font:12px/1.9 var(--mono);color:#365366;margin-top:12px;background:#f5f8f9;border-left:3px solid #84bac4;padding:11px 14px}.research-note{font-size:11px;color:#697d8b;line-height:1.9}.research-note p{margin:7px 0}.research-note b{font-weight:700;color:#334e5d}.footer{display:flex;justify-content:space-between;gap:10px;font:10px var(--mono);color:#a0aeb8;margin-top:18px}.footer a{color:#67818d;text-decoration:none}.footer a:hover{text-decoration:underline}
+@media(max-width:1350px){.shell{grid-template-columns:285px minmax(0,1fr)}.main{padding:22px}.plots{gap:4px}.figure{padding:13px}.overview{gap:8px}}
+@media(max-width:1050px){.plots{grid-template-columns:repeat(2,1fr)}.plot-frame:last-child{max-width:520px}.bottom{grid-template-columns:1fr}}
+@media(max-width:760px){.probe-panel .inputs{width:100%}.probe-panel .inputs input{width:110px}.shell{display:block}.side{max-height:none;position:static;padding:16px 18px}.main{padding:18px 13px}.top{flex-direction:column;align-items:flex-start}.plots{grid-template-columns:1fr}.plot-frame:last-child{max-width:none}.overview{grid-template-columns:repeat(2,minmax(0,1fr))}.workbar{flex-wrap:wrap}.timeline{order:2;flex-basis:100%}.figure{padding:10px}.figure-head{padding:5px}.footer{flex-direction:column}}
+
+
+/* Wave Lab V7 — editorial scientific UI; no microcopy on the primary surface */
+:root{--page:#f3f6f8;--paper:#fff;--ink:#203345;--muted:#6a7d8c;--line:#dce5ea;--accent:#087e95}
+body{font:15px/1.5 var(--sans);background:var(--page)}
+.shell{grid-template-columns:330px minmax(0,1fr)}
+.side{background:#fff;padding:24px 22px;box-shadow:3px 0 30px rgba(28,53,68,.035)}
+.identity{margin-bottom:30px}.symbol{width:42px;height:42px;background:#e7f6f8;border:0;border-radius:12px;font-size:25px}
+.identity strong{font-size:22px;font-weight:760;letter-spacing:-.5px}
+.side-sub,.minor,.foot-side,.identity small,.section h3 span,.top .eyebrow,.top p,.figure-head>span,.plot-desc,.subpanel>p,.target-chip,.probe-panel .hint,.lens-foot,.footer span{display:none!important}
+.section{margin-top:24px;padding-top:23px}.section h3{font-size:16px;font-weight:720;margin-bottom:17px}
+.section h3 span{display:none}
+.form-grid{gap:15px 12px}.control label,.probe-panel .inputs label{font-size:13px;font-weight:600;color:#526a7d;margin-bottom:7px}
+.control input,.control select,.probe-panel .inputs input{height:44px;border-radius:9px;border:1px solid #d4dfe5;background:#fdfefe;padding:9px 11px;font-size:15px}
+.control .suffix::after{font-size:13px;top:12px}
+.control .suffix input{padding-right:37px}
+input[type=number]{font-size:15px}
+#apPhysical,#lambda{font-size:14px!important;font-weight:700!important;padding:13px 0!important;white-space:nowrap}
+.node{background:#fff;border:1px solid #dde7ec;border-radius:10px;padding:13px 11px;margin-bottom:2px}
+.node-title{font-size:14px;margin-bottom:11px}.node-title i{width:9px;height:9px}
+.node-grid{gap:8px}.node-grid label{font-size:12px;color:#607788;margin-bottom:5px}
+.node-grid input{font-size:14px;height:38px;padding:5px 2px;border-radius:7px}
+.button{font-size:14px;padding:10px 15px;border-radius:9px;font-weight:650}.button.primary{background:#087e95;border-color:#087e95}
+.button:hover{box-shadow:0 2px 9px rgba(20,64,79,.08)}
+.main{max-width:1880px;padding:28px 34px 40px}
+.top{margin-bottom:18px;align-items:center}.top h1{font-size:29px;font-weight:760;margin:0}
+.actions{flex-wrap:wrap;gap:10px}.status{font-size:13px;border-radius:50px;background:#e8f4f5;padding:8px 12px;font-weight:600}
+.workbar{border-radius:13px;box-shadow:0 5px 20px rgba(25,61,80,.035);padding:15px 19px;margin-bottom:20px;gap:16px}
+.workbar label{font-size:14px}.timeline output{font-size:14px}.speed select{font-size:14px;border-radius:8px;padding:8px}
+.probe-panel{border-radius:12px;padding:18px 22px;align-items:center;margin-bottom:13px;box-shadow:0 3px 15px rgba(23,58,76,.025);gap:10px 20px}
+.target-panel{border-color:#e3e6df;background:#fff}
+.probe-panel .head{font-size:17px;font-weight:750;color:#264354;line-height:1.5}
+.target-panel .head{color:#a3693d}
+.probe-panel .inputs{gap:11px}.probe-panel .inputs input{width:116px}
+.ranges{width:100%;flex-basis:100%;padding-top:9px;border-top:1px solid #edf1f3}
+.ranges summary{font-size:13px;font-weight:600;color:#668090;cursor:pointer;display:list-item;list-style:inside}
+.ranges .distance-info{border-top:0;margin-top:9px;padding:0;line-height:1.8;font-size:13px}
+.overview{gap:13px;margin:19px 0}
+.metric{border-radius:12px;padding:16px 19px;box-shadow:0 3px 12px rgba(22,60,76,.025)}
+.metric .caption{font-size:13px;color:#68818f;font-weight:600}
+.metric .value{font-size:22px;font-weight:730;color:#1b3a4c;white-space:normal;overflow-wrap:anywhere}
+.metric .value small{font-size:13px}
+.figure{border-radius:14px;padding:23px 20px 17px;box-shadow:0 7px 28px rgba(20,51,71,.04)}
+.figure-head{padding:0 6px 15px}.figure-head strong{font-size:19px;font-weight:760}
+.plots{gap:15px}.plot-frame{border:1px solid #ebf0f2;border-radius:10px;padding:6px;background:#fff}
+.plot-title{font-size:15px;font-weight:700;padding:8px 0 12px;color:#365263;line-height:1.4}
+.sample-alert{font-size:13px;line-height:1.55;padding:12px 4px 0;margin-top:4px}.sample-alert.warn{color:#af642d}
+.bottom{gap:16px;margin-top:18px}
+.subpanel{border-radius:14px;padding:20px 23px;box-shadow:0 5px 20px rgba(20,51,71,.035)}
+.subpanel h3{font-size:17px;font-weight:750;margin-bottom:14px}.subpanel canvas{height:270px}
+.note{font-size:13px;line-height:1.65;color:#5d7280;margin-top:10px}
+.node-legend{font-size:12px;gap:10px 15px}
+.node-legend i{width:16px;height:4px}
+.wave-lens{border-radius:13px;box-shadow:0 16px 48px rgba(27,56,68,.19)}
+.wave-lens .lens-head{font-size:14px}.wave-lens .lens-tag{font-size:12px}
+.wave-lens .lens-pos,.wave-lens .lens-value{font-size:13px}
+.footer{margin-top:18px}.footer a{font-size:13px;font-family:var(--sans)}
+@media(max-width:1350px){.shell{grid-template-columns:290px minmax(0,1fr)}.main{padding:24px}.plots{gap:9px}.figure{padding:15px}}
+@media(max-width:1080px){.plots{grid-template-columns:repeat(2,minmax(0,1fr))}.plot-frame:last-child{max-width:none}.overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){.shell{display:block}.side{max-height:none;position:static;padding:19px 18px}.main{padding:18px 13px}.top{flex-direction:column;align-items:flex-start}.plots{grid-template-columns:1fr}.probe-panel .inputs{width:100%}.probe-panel .inputs input{width:100%}.probe-panel .inputs>div{flex:1;min-width:85px}.bottom{grid-template-columns:1fr}.workbar{flex-wrap:wrap}.timeline{order:2;flex-basis:100%}.metric .value{font-size:18px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="identity"><div class="symbol">∿</div><div><strong>Wave Lab</strong></div></div>
+    
+    <section class="section">
+      <h3>空间与频率</h3>
+      <div class="form-grid">
+        <div class="control"><label for="freq">工作频率</label><div class="suffix" data-unit="GHz"><input type="number" id="freq" min="0.2" max="100" value="10" step="0.1"></div></div>
+        <div class="control"><label for="height">截面高度</label><div class="suffix" data-unit="m"><input type="number" id="height" min="1" max="10000" value="50" step="1"></div></div>
+        <div class="control"><label for="spanX">截面宽度 X</label><div class="suffix" data-unit="m"><input type="number" id="spanX" min="0.03" max="500" value="2.4" step="0.1"></div></div>
+        <div class="control"><label for="spanY">截面宽度 Y</label><div class="suffix" data-unit="m"><input type="number" id="spanY" min="0.03" max="500" value="2.4" step="0.1"></div></div>
+        <div class="control"><label for="resolution">计算网格</label><select id="resolution"><option value="512">512 × 512</option><option value="768">768 × 768</option><option value="1000" selected>1000 × 1000</option><option value="1280">1280 × 1280</option></select></div>
+        <div class="control"><label>自由空间波长</label><div style="padding:9px 0;color:#216e7e;font:600 12px var(--mono)" id="lambda">30.0 mm</div></div>
+      </div>
+    </section>
+    <section class="section">
+      <h3>矩形口径</h3>
+      <div class="form-grid">
+        <div class="control"><label for="apX">口径长 a</label><div class="suffix" data-unit="λ"><input type="number" id="apX" min="0.5" max="30" value="5" step="0.5"></div></div>
+        <div class="control"><label for="apY">口径宽 b</label><div class="suffix" data-unit="λ"><input type="number" id="apY" min="0.5" max="30" value="5" step="0.5"></div></div>
+        <div class="control"><label for="eta">口面效率 η</label><input type="number" id="eta" min="0.01" max="1" value="0.7" step="0.05"></div>
+        <div class="control"><label>实际口径</label><div id="apPhysical" style="padding:9px 0;font:11px var(--mono);color:#216e7e">0.150 × 0.150 m</div></div>
+      </div>
+      
+    </section>
+    <section class="section">
+      <h3>节点布置 <span>z = 0 m</span></h3>
+      <div class="form-grid">
+        <div class="control"><label for="count">节点数</label><select id="count"><option>2</option><option>3</option><option selected>4</option><option>6</option><option>8</option></select></div>
+        <div class="control"><label>相位处理</label><div class="buttonrow"><button class="button" id="equal">同相</button><button class="button" id="random">随机</button></div></div>
+      </div>
+      
+      <div id="nodes" class="nodetable"></div>
+    </section>
+    
+  </aside>
+  <main class="main">
+    <header class="top"><div><h1>空间干涉场</h1></div><div class="actions"><span class="status" id="status">就绪</span><a class="button" style="text-decoration:none" href="./validation/" title="独立有限口径积分、网格收敛与功率闭合验收报告">数值验收报告 ↗</a><button class="button" id="csv">CSV 数据</button><button class="button primary" id="png">论文图 PNG</button></div></header>
+    <div class="workbar"><button class="button primary play" id="play">▶ 播放</button><button class="button" id="reset">复位</button><div class="timeline"><label for="time">t / T</label><input type="range" id="time" min="0" max="1" value="0" step="0.001"><output id="timeVal">0.000 T</output></div><div class="speed"><label for="speed">播放速度</label><select id="speed"><option value="0.2">0.2×</option><option value="0.5" selected>0.5×</option><option value="1">1×</option></select></div></div>
+    <section class="probe-panel target-panel" aria-label="独立目标位置设置">
+      <div><div class="head">目标位置 T <span class="target-chip"></span></div></div>
+      <div class="inputs">
+        <div><label for="targetX">目标 x / m</label><input id="targetX" type="number" step="any" value="0" inputmode="decimal"></div>
+        <div><label for="targetY">目标 y / m</label><input id="targetY" type="number" step="any" value="0" inputmode="decimal"></div>
+        <div><label for="targetZ">目标 z / m</label><input id="targetZ" type="number" step="any" value="50" inputmode="decimal" min="0"></div>
+        <button class="button" id="targetDefault" type="button">目标回到中心</button>
+      </div>
+      <details class="ranges"><summary>查看各节点至目标距离</summary><div class="distance-info" id="targetDistances">—</div></details>
+    </section>
+    <section class="probe-panel" aria-label="观察位置分析">
+      <div><div class="head">观察点 Q</div></div>
+      <div class="inputs"><div><label for="probeX">观察 x / m</label><input id="probeX" type="number" step="any" value="0" inputmode="decimal"></div><div><label for="probeY">观察 y / m</label><input id="probeY" type="number" step="any" value="0" inputmode="decimal"></div><button class="button" id="probeCenter" type="button">返回原点</button></div>
+      <details class="ranges"><summary>查看各节点至观察点距离</summary><div class="distance-info" id="probeDistances">—</div></details>
+    </section>
+    <div class="overview"><div class="metric"><div class="caption">工作波长</div><div class="value" id="mLambda">30.0 <small>mm</small></div></div><div class="metric"><div class="caption">计算样本</div><div class="value" id="mGrid">1000²</div></div><div class="metric"><div class="caption">观测坐标 (x, y)</div><div class="value" id="mXY">0.00, 0.00 <small>m</small></div></div><div class="metric"><div class="caption">该点平均法向通量</div><div class="value" id="mMean">—</div></div></div>
+    <section class="figure"><div class="figure-head"><strong>水平截面场分布</strong><span style="display:none">z = <span id="figureH">50</span> m</span></div>
+      <div class="plots"><div class="plot-frame"><canvas id="field" width="580" height="675" aria-label="瞬时电场分量 Ex，单位 V/m"></canvas><div class="plot-title">(a) 瞬时电场 Eₓ(t)</div></div><div class="plot-frame"><canvas id="square" width="580" height="675" aria-label="瞬时法向功率通量 Sz，单位 W/cm²"></canvas><div class="plot-title">(b) 瞬时法向通量 S_z(t)</div></div><div class="plot-frame"><canvas id="mean" width="580" height="675" aria-label="周期平均法向功率通量，单位 W/cm²"></canvas><div class="plot-title">(c) 周期平均 ⟨S_z⟩</div></div></div>
+      <div class="sample-alert" id="sampleAlert">正在核对空间采样分辨率……</div>
+    </section>
+    <div class="bottom">
+      <section class="subpanel"><h3>观察点 Q · 合成波形</h3><canvas id="trace" width="790" height="300"></canvas><div id="probeSummary" class="note"></div></section>
+      <section class="subpanel"><h3>各节点时域电场</h3><canvas id="nodeTrace" width="790" height="300"></canvas><div class="node-legend" id="nodeLegend"></div><div id="phaseSummary" class="note"></div></section>
+    </div>
+    <footer class="footer"><a href="https://github.com/huiw11512-dotcom/sar-aperture-lab/tree/main/wave-lab" target="_blank" rel="noreferrer">SOURCE / GITHUB ↗</a></footer>
+  </main>
+</div>
+<div class="wave-lens" id="waveLens" role="tooltip" aria-hidden="true">
+ <div class="lens-head"><span>局部放大镜</span><span class="lens-tag">5× · 原始网格</span></div>
+ <canvas id="lensCanvas" width="448" height="448"></canvas>
+ <div class="lens-pos" id="lensPos">x = — ; y = —</div>
+ <div class="lens-value" id="lensValue">—</div>
+ 
+</div>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),TWO=2*Math.PI,C=299792458,Z0=376.730313668;
+const state={freq:10,H:50,Lx:2.4,Ly:2.4,apX:5,apY:5,eta:.7,N:4,n:1000,t:0,speed:.5,playing:false,rx:0,ry:0,tx:0,ty:0,tz:50,nodes:[],data:null,peakEx:1,peakFlux:1,last:0,lensImages:{},lensMouse:null};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const sinc=x=>Math.abs(x)<1e-9?1:Math.sin(x)/x;
+const fmt=(v,d=2)=>Number(v).toFixed(d);
+const sci=(v,unit='',digits=2)=>`${Math.abs(v)<1e-15?'0':(Math.abs(v)<.0001||Math.abs(v)>=10000?v.toExponential(digits):v.toFixed(Math.abs(v)<.01?5:Math.abs(v)<1?3:2))}${unit?' '+unit:''}`;
+const nodeColors=['#16728C','#D36F42','#8062AF','#289B78','#C24C74','#9C7A32','#516EA4','#4A9184'];
+const radians=d=>d*Math.PI/180;
+function layout(k){const old=state.nodes,columns=Math.ceil(Math.sqrt(k)),rows=Math.ceil(k/columns);return Array.from({length:k},(_,i)=>{const x=(i%columns-(columns-1)/2)*6,y=(Math.floor(i/columns)-(rows-1)/2)*6;return old[i]??{x,y,phase:0,power:1}})}
+function renderNodes(){const parent=$('nodes');parent.replaceChildren();state.nodes.forEach((nd,i)=>{const wrap=document.createElement('div');wrap.className='node';wrap.innerHTML=`<div class="node-title"><i style="background:${nodeColors[i%nodeColors.length]}"></i>节点 ${i+1}</div><div class="node-grid">${[['x','x / m',.1],['y','y / m',.1],['phase','φ / °',1],['power','P / W','any']].map(([key,lab,step])=>`<div><label for="nd${i}${key}">${lab}</label><input id="nd${i}${key}" type="number" value="${nd[key]}" step="${step}" ${key==='power'?'min="0" max="10"':key==='phase'?'min="-360" max="360"':''}></div>`).join('')}</div>`;parent.appendChild(wrap);
+for(const key of ['x','y','phase','power']){$(`nd${i}${key}`).addEventListener('change',e=>{let v=Number(e.target.value);if(!Number.isFinite(v))return;if(key==='power')v=clamp(v,0,10);if(key==='phase')v=clamp(v,-360,360);nd[key]=v;e.target.value=v;queue()});}})}
+state.nodes=layout(4);renderNodes();
+function syncControls(){const ids=[['freq','freq',.2,100],['height','H',1,1e4],['spanX','Lx',.03,500],['spanY','Ly',.03,500],['apX','apX',.5,30],['apY','apY',.5,30],['eta','eta',.01,1]];
+for(const [id,k,lo,hi] of ids){$(id).addEventListener('change',e=>{let v=Number(e.target.value);if(!Number.isFinite(v))v=state[k];v=clamp(v,lo,hi);state[k]=v;e.target.value=v;queue()})}
+$('resolution').addEventListener('change',e=>{state.n=+e.target.value;queue()});
+$('count').addEventListener('change',e=>{state.N=+e.target.value;state.nodes=layout(state.N);renderNodes();queue()});
+$('equal').addEventListener('click',()=>{state.nodes.forEach(n=>n.phase=0);renderNodes();queue()});
+$('random').addEventListener('click',()=>{state.nodes.forEach(n=>n.phase=Math.round(Math.random()*360-180));renderNodes();queue()});
+$('time').addEventListener('input',e=>{state.t=+e.target.value;dynamic()});
+$('play').addEventListener('click',()=>{state.playing=!state.playing;$('play').textContent=state.playing?'Ⅱ 暂停':'▶ 播放';state.last=0});
+$('reset').addEventListener('click',()=>{state.playing=false;state.t=0;state.last=0;$('play').textContent='▶ 播放';dynamic()});
+$('speed').addEventListener('change',e=>state.speed=+e.target.value);
+for(const [id,key] of [['probeX','rx'],['probeY','ry']]){$(id).addEventListener('change',e=>{const next=Number(e.target.value);if(e.target.value.trim()===''||!Number.isFinite(next)||Math.abs(next)>1e6){e.target.value=state[key];return}state[key]=next;dynamic()})}
+$('probeCenter').addEventListener('click',()=>{state.rx=0;state.ry=0;dynamic()});
+for(const [id,key] of [['targetX','tx'],['targetY','ty'],['targetZ','tz']]){
+  $(id).addEventListener('change',e=>{
+    const raw=e.target.value.trim(),next=Number(raw);
+    if(raw===''||!Number.isFinite(next)||Math.abs(next)>1e6||(key==='tz'&&next<0)){e.target.value=state[key];return;}
+    state[key]=next;queue();
+  });
+}
+$('targetDefault').addEventListener('click',()=>{state.tx=0;state.ty=0;state.tz=state.H;queue()});
+$('png').addEventListener('click',exportPNG);$('csv').addEventListener('click',exportCSV);
+for(const [mode,name] of ['field','square','mean'].entries()){
+  const cv=$(name);
+  cv.addEventListener('pointermove',e=>{
+    if(e.pointerType==='touch')return;
+    const rect=cv.getBoundingClientRect();
+    state.lensMouse={cx:e.clientX,cy:e.clientY,rectW:rect.width,rectH:rect.height,mode};
+    updateLens();
+  });
+  cv.addEventListener('pointerleave',hideLens);
+  cv.addEventListener('pointercancel',hideLens);
+}
+window.addEventListener('scroll',hideLens,true);
+window.addEventListener('blur',hideLens);
+for(const name of ['field','square','mean']){$(name).addEventListener('click',e=>{const box=e.currentTarget.getBoundingClientRect(),xx=(e.clientX-box.left)/box.width,yy=(e.clientY-box.top)/box.height;const ux=clamp((xx*580-86)/448,0,1),uy=clamp((yy*675-36)/448,0,1);state.rx=(ux-.5)*state.Lx;state.ry=(.5-uy)*state.Ly;dynamic()});}}
+syncControls();
+const LENS_SIZE=448,LENS_ZOOM=5;
+function hideLens(){
+  state.lensMouse=null;
+  const el=$('waveLens');el.classList.remove('open');el.setAttribute('aria-hidden','true');
+}
+function updateLens(){
+  const m=state.lensMouse;
+  if(!m||!state.data)return;
+  const source=state.lensImages[m.mode];
+  if(!source)return;
+  const canvas=$(['field','square','mean'][m.mode]),rect=canvas.getBoundingClientRect();
+  const px=(m.cx-rect.left)/rect.width*580,py=(m.cy-rect.top)/rect.height*675;
+  const ux=(px-86)/448,uy=(py-36)/448;
+  if(ux<0||ux>1||uy<0||uy>1){const l=$('waveLens');l.classList.remove('open');l.setAttribute('aria-hidden','true');return;}
+  const n=source.width,plotCssW=rect.width*448/580;
+  const diameter=Math.min(n,Math.max(8,n*(224/LENS_ZOOM)/Math.max(plotCssW,1)));
+  const sx=clamp(ux*n-diameter/2,0,n-diameter),sy=clamp(uy*n-diameter/2,0,n-diameter);
+  const lc=$('lensCanvas'),ctx=lc.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,LENS_SIZE,LENS_SIZE);
+  // No extra resolution is invented: magnify the actual computed raster.
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(source,sx,sy,diameter,diameter,0,0,LENS_SIZE,LENS_SIZE);
+  const crossX=(ux*n-sx)/diameter*LENS_SIZE,crossY=(uy*n-sy)/diameter*LENS_SIZE;
+  ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.beginPath();
+  ctx.moveTo(crossX-18,crossY);ctx.lineTo(crossX+18,crossY);
+  ctx.moveTo(crossX,crossY-18);ctx.lineTo(crossX,crossY+18);ctx.stroke();
+  ctx.strokeStyle='#263f50';ctx.lineWidth=1;ctx.beginPath();
+  ctx.moveTo(crossX-18,crossY);ctx.lineTo(crossX+18,crossY);
+  ctx.moveTo(crossX,crossY-18);ctx.lineTo(crossX,crossY+18);ctx.stroke();
+  const x=(ux-.5)*state.Lx,y=(.5-uy)*state.Ly;
+  const p=pointPhasor(x,y),val=m.mode===0?snapshot(p,state.t).ex:m.mode===1?snapshot(p,state.t).sz:meanFlux(p);
+  const label=m.mode===0?'Eₓ(t)':m.mode===1?'S_z(t)':'⟨S_z⟩',unit=m.mode===0?'V/m':'W/cm²';
+  $('lensPos').textContent='x = '+fmt(x,4)+' m    y = '+fmt(y,4)+' m';
+  $('lensValue').textContent=label+' = '+sci(val,' '+unit);
+  const el=$('waveLens');el.classList.add('open');el.setAttribute('aria-hidden','false');
+  const w=248,h=342,space=15,vw=window.innerWidth,vh=window.innerHeight;
+  let left=m.cx+space;if(left+w>vw-6)left=m.cx-w-space;
+  if(left<5)left=5;
+  let top=m.cy+space;if(top+h>vh-6)top=m.cy-h-space;
+  el.style.left=Math.round(Math.max(5,Math.min(vw-w-5,left)))+'px';
+  el.style.top=Math.round(Math.max(5,Math.min(vh-h-5,top)))+'px';
+}
+// Semi-analytical far-field vector formulation for each rectangular element:
+// Gain(boresight) = 4π η_ap A/λ². E_peak = √(2 Z0 P G0 / (4π r²)) * signed aperture factor.
+// Each E vector is the global x-polarization projected into the plane orthogonal to the local propagation vector.
+// H = k̂ × E / Z0; grid Sz_avg = 1/2 Re(E × H*)_z; Sz_instant = [E(t) × H(t)]_z.
+// Each antenna uses a normalized, right-handed local aperture frame:
+// n = antenna boresight toward target T; u,v = aperture long/short axes.
+// These are reference-field *virtual* orientations, not mechanical steering commands.
+// The four-node system is not approximated by one common far-field plane wave.
+function pointingFrame(nd){
+  let nx=state.tx-nd.x,ny=state.ty-nd.y,nz=state.tz;
+  let length=Math.hypot(nx,ny,nz);
+  if(length<1e-9){nx=0;ny=0;nz=1;length=1;}
+  nx/=length;ny/=length;nz/=length;
+  // A continuous minimal rotation taking the global +z axis to boresight.
+  // The app restricts target z to nonnegative values, so 1+nz remains stable.
+  const den=1+nz;
+  const ux=1-nx*nx/den,uy=-nx*ny/den,uz=-nx;
+  const vx=-nx*ny/den,vy=1-ny*ny/den,vz=-ny;
+  return {nx,ny,nz,ux,uy,uz,vx,vy,vz};
+}
+function addSource(acc,x,y,nd,k,lam){
+  if(!(nd.power>0))return;
+  const vx=x-nd.x,vy=y-nd.y,r=Math.hypot(vx,vy,state.H);
+  const dx=vx/r,dy=vy/r,dz=state.H/r;
+  const f=nd._frame||pointingFrame(nd);
+  const forward=dx*f.nx+dy*f.ny+dz*f.nz;
+  if(forward<=0)return;
+  const u=dx*f.ux+dy*f.uy+dz*f.uz,v=dx*f.vx+dy*f.vy+dz*f.vz;
+  // Uniformly illuminated rectangular aperture in its rotated local frame.
+  // The obliquity factor smoothly models forward radiation; no true sidelobes/coupling.
+  const pat=sinc(Math.PI*state.apX*u)*sinc(Math.PI*state.apY*v)*(1+forward)*.5;
+  const G0=4*Math.PI*state.eta*state.apX*state.apY;
+  const eAmp=Math.sqrt(2*Z0*nd.power*G0/(4*Math.PI*r*r))*pat;
+  // Electric polarization: project aperture local-u axis into s-perpendicular plane.
+  const pd=f.ux*dx+f.uy*dy+f.uz*dz;
+  let px=f.ux-pd*dx,py=f.uy-pd*dy,pz=f.uz-pd*dz;
+  const pm=Math.max(1e-12,Math.hypot(px,py,pz));
+  px/=pm;py/=pm;pz/=pm;
+  const ex=eAmp*px,ey=eAmp*py,ez=eAmp*pz;
+  const hx=(dy*ez-dz*ey)/Z0,hy=(dz*ex-dx*ez)/Z0;
+  const ph=(k*r+radians(nd.phase))%TWO,co=Math.cos(ph),si=Math.sin(ph);
+  acc.erx+=ex*co;acc.eix+=ex*si;acc.ery+=ey*co;acc.eiy+=ey*si;
+  acc.hrx+=hx*co;acc.hix+=hx*si;acc.hry+=hy*co;acc.hiy+=hy*si;
+}
+function emptyAcc(){return {erx:0,eix:0,ery:0,eiy:0,hrx:0,hix:0,hry:0,hiy:0}}
+function pointPhasor(x,y,nodes=state.nodes){const lam=C/(state.freq*1e9),k=TWO/lam,acc=emptyAcc();for(const nd of nodes)addSource(acc,x,y,nd,k,lam);return acc}
+function sourcePhasors(x,y){return state.nodes.map(nd=>pointPhasor(x,y,[nd]));}
+const meanFlux=p=>0.5*(p.erx*p.hry+p.eix*p.hiy-p.ery*p.hrx-p.eiy*p.hix)/10000;
+function snapshot(p,t){const co=Math.cos(TWO*t),si=Math.sin(TWO*t),ex=p.erx*co+p.eix*si,ey=p.ery*co+p.eiy*si,hx=p.hrx*co+p.hix*si,hy=p.hry*co+p.hiy*si;return {ex,sz:(ex*hy-ey*hx)/10000}}
+function computeData(n){for(const nd of state.nodes)nd._frame=pointingFrame(nd);const size=n*n,fields={};for(const key of ['erx','eix','ery','eiy','hrx','hix','hry','hiy','szAvg'])fields[key]=new Float32Array(size);
+const lam=C/(state.freq*1e9),k=TWO/lam;
+for(let j=0;j<n;j++){const y=(.5-(j+.5)/n)*state.Ly;for(let i=0;i<n;i++){
+const x=((i+.5)/n-.5)*state.Lx,p=j*n+i,acc=emptyAcc();for(const nd of state.nodes)addSource(acc,x,y,nd,k,lam);
+for(const key of ['erx','eix','ery','eiy','hrx','hix','hry','hiy'])fields[key][p]=acc[key];fields.szAvg[p]=meanFlux(acc);
+}}return {n,fields,lam}}
+function atIndex(index,d=state.data){const f=d.fields,p={};for(const key of ['erx','eix','ery','eiy','hrx','hix','hry','hiy'])p[key]=f[key][index];return p}
+function indexAt(x,y,d=state.data){const n=d.n,i=clamp(Math.floor((x/state.Lx+.5)*n),0,n-1),j=clamp(Math.floor((.5-y/state.Ly)*n),0,n-1);return j*n+i;}
+let timer=null;function queue(){clearTimeout(timer);workerGeneration++;if(activeFieldWorker){activeFieldWorker.terminate();activeFieldWorker=null;}$('status').textContent='准备计算…';$('png').disabled=true;$('csv').disabled=true;timer=setTimeout(compute,130)}
+function finishCompute(d){for(const nd of state.nodes)nd._frame=pointingFrame(nd);state.meanRaster=null;state.data=d;let peakEx=0,maxFlux=0,minFlux=Infinity;
+for(let p=0;p<d.n*d.n;p++){peakEx=Math.max(peakEx,Math.hypot(d.fields.erx[p],d.fields.eix[p]));const v=d.fields.szAvg[p];maxFlux=Math.max(maxFlux,v);minFlux=Math.min(minFlux,v)}
+state.peakEx=Math.max(1e-10,peakEx);state.peakFlux=Math.max(1e-15,maxFlux*2.0);
+$('lambda').textContent=fmt(d.lam*1000,2)+' mm';$('apPhysical').textContent=fmt(state.apX*d.lam,3)+' × '+fmt(state.apY*d.lam,3)+' m';$('figureH').textContent=fmt(state.H,1);$('mLambda').innerHTML=fmt(d.lam*1000,2)+' <small>mm</small>';$('mGrid').textContent=state.n+'²';
+sampleCheck();drawFigure($('mean'),2,true);dynamic();$('status').textContent='计算完成';$('png').disabled=false;$('csv').disabled=false;
+}
+// Run high-resolution field integration off the UI thread. A new worker cancels stale jobs.
+let activeFieldWorker=null,workerGeneration=0,fieldWorkerURL=null;
+function makeFieldWorkerURL(){
+  if(fieldWorkerURL)return fieldWorkerURL;
+  const body=`'use strict';
+    const TWO=2*Math.PI,C=299792458,Z0=376.730313668;
+    const radians=${radians.toString()};
+    const sinc=${sinc.toString()};
+    const meanFlux=${meanFlux.toString()};
+    let state=null;
+    ${pointingFrame.toString()}
+    ${addSource.toString()}
+    ${emptyAcc.toString()}
+    ${computeData.toString()}
+    self.onmessage=ev=>{
+      try{
+        state=ev.data.params;
+        const data=computeData(state.n);
+        const transfer=Object.values(data.fields).map(a=>a.buffer);
+        self.postMessage({ok:true,data},transfer);
+      }catch(e){self.postMessage({ok:false,error:String(e)});}
+    };
+  `;
+  fieldWorkerURL=URL.createObjectURL(new Blob([body],{type:'text/javascript'}));
+  return fieldWorkerURL;
+}
+function compute(){
+  const generation=++workerGeneration;
+  if(activeFieldWorker){activeFieldWorker.terminate();activeFieldWorker=null;}
+  $('png').disabled=true;$('csv').disabled=true;
+  $('status').textContent='正在计算 '+state.n+'² …';
+  const params={freq:state.freq,H:state.H,Lx:state.Lx,Ly:state.Ly,apX:state.apX,apY:state.apY,eta:state.eta,
+    tx:state.tx,ty:state.ty,tz:state.tz,n:state.n,
+    nodes:state.nodes.map(nd=>({x:nd.x,y:nd.y,phase:nd.phase,power:nd.power}))};
+  if(typeof Worker==='undefined'){
+    finishCompute(computeData(state.n));return;
+  }
+  try{
+    const w=new Worker(makeFieldWorkerURL());
+    activeFieldWorker=w;
+    w.onmessage=e=>{
+      if(generation!==workerGeneration)return;
+      w.terminate();activeFieldWorker=null;
+      if(!e.data.ok){$('status').textContent='后台计算异常，正在切换';setTimeout(()=>{if(generation===workerGeneration)finishCompute(computeData(state.n))},20);return;}
+      finishCompute(e.data.data);
+    };
+    w.onerror=e=>{
+      if(generation!==workerGeneration)return;
+      w.terminate();activeFieldWorker=null;
+      $('status').textContent='切换兼容计算中…';
+      setTimeout(()=>{if(generation===workerGeneration)finishCompute(computeData(state.n))},20);
+    };
+    w.postMessage({params});
+  }catch(e){
+    if(activeFieldWorker)activeFieldWorker.terminate();
+    activeFieldWorker=null;
+    setTimeout(()=>{if(generation===workerGeneration)finishCompute(computeData(state.n))},20);
+  }
+}
+function sampleCheck(){const l=state.data.lam,nd=state.nodes;let maxDu=0,maxDv=0;
+for(const [x,y] of [[0,0],[-state.Lx/2,-state.Ly/2],[state.Lx/2,state.Ly/2],[-state.Lx/2,state.Ly/2],[state.Lx/2,-state.Ly/2]]){const uv=nd.map(q=>{const dx=x-q.x,dy=y-q.y,r=Math.hypot(dx,dy,state.H);return [dx/r,dy/r]});for(let a=0;a<uv.length;a++)for(let b=a+1;b<uv.length;b++){maxDu=Math.max(maxDu,Math.abs(uv[a][0]-uv[b][0]));maxDv=Math.max(maxDv,Math.abs(uv[a][1]-uv[b][1]));}}
+const fx=maxDu?l/maxDu:Infinity,fy=maxDv?l/maxDv:Infinity,worst=Math.min(fx/(state.Lx/state.n),fy/(state.Ly/state.n));const D=Math.hypot(state.apX,state.apY)*l,far=2*D*D/l;
+let s=`当前网格 ${state.n} × ${state.n} · 约 ${fmt(worst,1)} 点/干涉周期。`;if(worst<6)s+=' 采样不足，局部峰值可能漏检。可缩小截面范围或提高网格。';if(state.H<far)s+=` 观察高度小于单口径远场判据 ${fmt(far,2)} m。`;
+const el=$('sampleAlert');el.textContent=s;el.style.display=(worst<6||state.H<far)?'block':'none';el.classList.toggle('warn',worst<6||state.H<far)}
+const signed=[[49,67,126],[92,146,187],[209,226,234],[250,251,249],[242,206,178],[200,113,95],[148,47,56]];
+const viridis=[[68,1,84],[71,44,122],[59,81,139],[44,113,142],[33,145,140],[94,201,98],[253,231,37]];
+function color(x,stops){const z=clamp(x,0,1)*(stops.length-1),i=Math.min(stops.length-2,Math.floor(z)),t=z-i;return [0,1,2].map(k=>Math.round(stops[i][k]*(1-t)+stops[i+1][k]*t))}
+const makeLut=stops=>{const arr=new Uint8Array(768);for(let i=0;i<256;i++)arr.set(color(i/255,stops),i*3);return arr};const lutS=makeLut(signed),lutP=makeLut(viridis);
+function imageData(mode,d=state.data,t=state.t){const n=d.n,c=document.createElement('canvas');c.width=n;c.height=n;const g=c.getContext('2d',{alpha:false}),img=g.createImageData(n,n),out=img.data;
+const f=d.fields,co=Math.cos(TWO*t),si=Math.sin(TWO*t),pkE=state.peakEx,pkS=state.peakFlux;
+for(let i=0;i<n*n;i++){const ex=f.erx[i]*co+f.eix[i]*si,ey=f.ery[i]*co+f.eiy[i]*si,hx=f.hrx[i]*co+f.hix[i]*si,hy=f.hry[i]*co+f.hiy[i]*si;
+const value=mode===0?ex:mode===1?(ex*hy-ey*hx)/10000:f.szAvg[i];const v=mode===0?(value/pkE+1)*.5:value/pkS,idx=4*i,ci=Math.round(clamp(v,0,1)*255)*3,lut=mode===0?lutS:lutP;out[idx]=lut[ci];out[idx+1]=lut[ci+1];out[idx+2]=lut[ci+2];out[idx+3]=255;}g.putImageData(img,0,0);return c;}
+function drawFigure(canvas,mode,showPoint=false){if(!state.data)return;const g=canvas.getContext('2d'),W=canvas.width,H=canvas.height;g.clearRect(0,0,W,H);g.fillStyle='#fff';g.fillRect(0,0,W,H);const x0=86,y0=36,sz=448;
+const im=mode===2?(state.meanRaster||(state.meanRaster=imageData(2))):imageData(mode);if(showPoint)state.lensImages[mode]=im;g.save();g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(im,x0,y0,sz,sz);g.restore();g.lineWidth=1;g.strokeStyle='#52616b';g.strokeRect(x0+.5,y0+.5,sz,sz);
+g.fillStyle='#304452';g.font='21px Arial, sans-serif';g.textAlign='center';for(let i=0;i<=4;i++){const vx=(i/4-.5)*state.Lx,xx=x0+i*sz/4;g.beginPath();g.moveTo(xx,y0+sz);g.lineTo(xx,y0+sz+6);g.stroke();g.fillText(fmt(vx,state.Lx<1?2:1),xx,y0+sz+29);const vy=(.5-i/4)*state.Ly,yy=y0+i*sz/4;g.beginPath();g.moveTo(x0-6,yy);g.lineTo(x0,yy);g.stroke();g.textAlign='right';g.fillText(fmt(vy,state.Ly<1?2:1),x0-12,yy+6);g.textAlign='center'}g.fillText('x (m)',x0+sz/2,y0+sz+55);g.save();g.translate(26,y0+sz/2);g.rotate(-Math.PI/2);g.fillText('y (m)',0,0);g.restore();
+const lx=x0,ly=590,lw=sz,lh=15;const palette=mode===0?signed:viridis;for(let i=0;i<192;i++){const col=color(i/191,palette);g.fillStyle=`rgb(${col.join(',')})`;g.fillRect(lx+i*lw/192,ly,lw/192+1,lh)}g.strokeStyle='#bac4cb';g.strokeRect(lx+.5,ly+.5,lw,lh);
+const p=mode===0?state.peakEx:state.peakFlux;g.fillStyle='#52616b';g.font='19px Arial, sans-serif';g.textAlign='left';g.fillText(mode===0?sci(-p):'0',lx,ly+34);g.textAlign='center';g.fillText(mode===0?'0':sci(p/2),lx+lw/2,ly+34);g.textAlign='right';g.fillText(sci(p),lx+lw,ly+34);g.font='18px Arial';g.textAlign='center';g.fillText(mode===0?'Eₓ (V/m)':'S_z (W/cm²)',lx+lw/2,ly+54);
+if(showPoint&&Math.abs(state.rx)<=state.Lx/2&&Math.abs(state.ry)<=state.Ly/2){const px=x0+(.5+state.rx/state.Lx)*sz,py=y0+(.5-state.ry/state.Ly)*sz;g.beginPath();g.arc(px,py,5,0,TWO);g.strokeStyle='white';g.lineWidth=4;g.stroke();g.beginPath();g.arc(px,py,5,0,TWO);g.strokeStyle='#1e3542';g.lineWidth=1.8;g.stroke()}
+if(showPoint&&Math.abs(state.tx)<=state.Lx/2&&Math.abs(state.ty)<=state.Ly/2){
+  const xx=x0+(.5+state.tx/state.Lx)*sz,yy=y0+(.5-state.ty/state.Ly)*sz;
+  g.save();g.lineWidth=2;g.strokeStyle='#a44e20';g.fillStyle='#fff3e8';
+  g.beginPath();g.moveTo(xx,yy-8);g.lineTo(xx+8,yy);g.lineTo(xx,yy+8);g.lineTo(xx-8,yy);g.closePath();g.fill();g.stroke();
+  g.fillStyle='#8e4722';g.font='bold 13px Arial';g.textAlign='left';g.fillText(Math.abs(state.tz-state.H)<1e-9?'T':'T (投影)',xx+11,yy-11);g.restore();
+}
+}
+function traceAxes(g,cv,{yMin,yMax,unit}){const W=cv.width,H=cv.height,x0=64,y0=25,w=W-(unit==='Eₓ (V/m)'?150:96),h=H-73;g.clearRect(0,0,W,H);g.fillStyle='#fff';g.fillRect(0,0,W,H);g.strokeStyle='#e1e7eb';g.lineWidth=1;g.font='17px Arial';g.fillStyle='#607587';for(let k=0;k<=4;k++){const x=x0+k*w/4;g.beginPath();g.moveTo(x,y0);g.lineTo(x,y0+h);g.stroke();g.textAlign='center';g.fillText(fmt(k/4,2),x,y0+h+26);const y=y0+k*h/4;g.beginPath();g.moveTo(x0,y);g.lineTo(x0+w,y);g.stroke();g.textAlign='right';g.fillText(sci(yMax-(yMax-yMin)*k/4),x0-9,y+5)}g.textAlign='center';g.fillText('t / T',x0+w/2,H-9);g.textAlign='left';g.fillText(unit,x0,y0-9);return {x0,y0,w,h,yy:v=>y0+h*(yMax-v)/(yMax-yMin)}}
+function waveLine(g,axes,f,color,width=2){g.beginPath();g.strokeStyle=color;g.lineWidth=width;for(let i=0;i<=400;i++){const t=i/400,v=f(t),x=axes.x0+t*axes.w,y=axes.yy(v);if(!i)g.moveTo(x,y);else g.lineTo(x,y)}g.stroke()}
+function markTime(g,axes){g.strokeStyle='#607c8c';g.lineWidth=1.4;g.setLineDash([5,4]);g.beginPath();const x=axes.x0+state.t*axes.w;g.moveTo(x,axes.y0);g.lineTo(x,axes.y0+axes.h);g.stroke();g.setLineDash([])}
+function plotTrace(){
+ const p=pointPhasor(state.rx,state.ry),amplitude=Math.hypot(p.erx,p.eix),fluxMean=meanFlux(p);
+ const ymax=Math.max(1e-10,amplitude),c=$('trace'),g=c.getContext('2d');
+ const ax=traceAxes(g,c,{yMin:-1.15*ymax,yMax:1.15*ymax,unit:'Eₓ (V/m)'});
+ waveLine(g,ax,t=>snapshot(p,t).ex,'#137991',2.6);
+ let minS=0,maxS=0;for(let j=0;j<=128;j++){const s=snapshot(p,j/128).sz;minS=Math.min(minS,s);maxS=Math.max(maxS,s)}
+ const range=Math.max(1e-16,maxS-minS),lower=minS-.07*range,upper=maxS+.07*range;
+ g.strokeStyle='#ca7950';g.lineWidth=2.1;g.beginPath();for(let j=0;j<=400;j++){const t=j/400,v=snapshot(p,t).sz,x=ax.x0+t*ax.w,y=ax.y0+ax.h*(upper-v)/(upper-lower);if(!j)g.moveTo(x,y);else g.lineTo(x,y)}g.stroke();
+ g.fillStyle='#a25f3f';g.font='12px Arial';g.textAlign='left';g.fillText('S_z (W/cm²)',ax.x0+ax.w+6,ax.y0-9);
+ for(let j=0;j<=4;j++){const y=ax.y0+ax.h*j/4;g.textAlign='left';g.fillText(sci(upper-(upper-lower)*j/4),ax.x0+ax.w+8,y+4)}
+ markTime(g,ax);
+ const now=snapshot(p,state.t);$('probeSummary').textContent=`当前：Eₓ(t) = ${sci(now.ex,'V/m')}；S_z(t) = ${sci(now.sz,'W/cm²')}；周期平均 ⟨S_z⟩ = ${sci(fluxMean,'W/cm²')}。蓝线对应左轴，橙线对应右轴。`;
+ $('mMean').innerHTML=sci(fluxMean)+' <small>W/cm²</small>';
+}
+function plotNodeTrace(){const ps=sourcePhasors(state.rx,state.ry),combined=pointPhasor(state.rx,state.ry),c=$('nodeTrace'),g=c.getContext('2d'),amplitudes=ps.map(p=>Math.hypot(p.erx,p.eix));const total=Math.hypot(combined.erx,combined.eix),scale=Math.max(1e-7,total,...amplitudes);
+const ax=traceAxes(g,c,{yMin:-1.10*scale,yMax:1.10*scale,unit:'Eₓ,n (V/m)'});ps.forEach((p,i)=>waveLine(g,ax,t=>p.erx*Math.cos(TWO*t)+p.eix*Math.sin(TWO*t),nodeColors[i%nodeColors.length],1.8));waveLine(g,ax,t=>combined.erx*Math.cos(TWO*t)+combined.eix*Math.sin(TWO*t),'#111827',3.5);markTime(g,ax);
+const leg=$('nodeLegend');leg.replaceChildren();ps.forEach((p,i)=>{const el=document.createElement('span');el.innerHTML=`<i style="background:${nodeColors[i%nodeColors.length]}"></i>节点${i+1} ${sci(amplitudes[i],'V/m')}`;leg.appendChild(el)});const tt=document.createElement('span');tt.innerHTML=`<i style="background:#111827"></i><b>合成 ${sci(total,'V/m')}</b>`;leg.appendChild(tt);
+const ref=ps.find(p=>Math.hypot(p.erx,p.eix)>1e-10);const refPh=ref?Math.atan2(ref.eix,ref.erx):0;const deg=180/Math.PI;const normalizeDeg=x=>((x+180)%360+360)%360-180;
+$('phaseSummary').textContent='到达相位相对第一路有效节点：'+ps.map((p,i)=>`节点${i+1} ${amplitudes[i]<=1e-10?'—':fmt(normalizeDeg((Math.atan2(p.eix,p.erx)-refPh)*deg),1)+'°'}`).join('　·　')+'。相位包含传播路程及矩形方向图符号。';}
+function dynamic(){
+for(const [id,key] of [['targetX','tx'],['targetY','ty'],['targetZ','tz']]){
+  if(document.activeElement!==$(id))$(id).value=String(Number(state[key].toFixed(6)));
+}
+const targetRanges=state.nodes.map((nd,i)=>({i,r:Math.hypot(state.tx-nd.x,state.ty-nd.y,state.tz)}));
+$('targetDistances').innerHTML='<b>节点 → 目标 T 的距离</b>　'+targetRanges.map(p=>'节点'+(p.i+1)+' '+p.r.toFixed(3)+' m').join('　·　')+
+'　｜ 目标 z = '+fmt(state.tz,2)+' m，截面 z = '+fmt(state.H,2)+' m'+
+(Math.abs(state.tz-state.H)>1e-9?'（场图中为目标的 XY 投影）':'')+
+(Math.abs(state.tx)>state.Lx/2||Math.abs(state.ty)>state.Ly/2?'；目标投影位于当前截面图之外':'');
+if(document.activeElement!==$('probeX'))$('probeX').value=String(Number(state.rx.toFixed(6)));if(document.activeElement!==$('probeY'))$('probeY').value=String(Number(state.ry.toFixed(6)));
+const ranges=state.nodes.map((nd,i)=>({i,r:Math.hypot(state.rx-nd.x,state.ry-nd.y,state.H)}));
+$('probeDistances').innerHTML='<b>各节点 → 观察点距离</b>　'+ranges.map(p=>'节点'+(p.i+1)+' '+p.r.toFixed(3)+' m').join('　·　') + (Math.abs(state.rx)>state.Lx/2||Math.abs(state.ry)>state.Ly/2?'　（观察点位于当前显示截面之外）':'');
+$('time').value=state.t;$('timeVal').textContent=fmt(state.t,3)+' T';if(!state.data)return;drawFigure($('field'),0,true);drawFigure($('square'),1,true);drawFigure($('mean'),2,true);$('mXY').innerHTML=fmt(state.rx,2)+', '+fmt(state.ry,2)+' <small>m</small>';plotTrace();plotNodeTrace();if(state.lensMouse)updateLens()}
+let lastPaint=0;function tick(time){if(state.playing&&state.data){if(state.last)state.t=(state.t+clamp((time-state.last)/1000,0,.1)*state.speed)%1;if(time-lastPaint>85){dynamic();lastPaint=time}}state.last=time;requestAnimationFrame(tick)}
+function dl(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000)}
+async function exportPNG(){if(!state.data)return;const btn=$('png');btn.disabled=true;btn.textContent='生成中…';await new Promise(r=>setTimeout(r,25));const orig={data:state.data,peakEx:state.peakEx,peakFlux:state.peakFlux,meanRaster:state.meanRaster};
+try{const high=state.data.n>=1000?state.data:computeData(1000);state.data=high;state.meanRaster=null;let pkE=0,pkS=0;for(let i=0;i<high.n**2;i++){pkE=Math.max(pkE,Math.hypot(high.fields.erx[i],high.fields.eix[i]));pkS=Math.max(pkS,high.fields.szAvg[i])}state.peakEx=Math.max(1e-10,pkE);state.peakFlux=Math.max(1e-15,pkS*2);
+const W=3240,H=1400,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,H);g.fillStyle='#1e2b38';g.font='bold 42px Arial';g.fillText('Spatial interference: electric field and normal power flux',60,70);g.font='24px Arial';g.fillStyle='#586c7a';g.fillText(`f = ${state.freq} GHz     z = ${state.H} m     aperture = ${state.apX}λ × ${state.apY}λ     N = ${state.N}     t/T = ${fmt(state.t,3)}`,60,113);
+const labels=['(a) Instantaneous Ex (V/m)','(b) Instantaneous Sz (W/cm²)','(c) Cycle-averaged Sz (W/cm²)'];for(let mode=0;mode<3;mode++){const off=document.createElement('canvas');off.width=580;off.height=675;drawFigure(off,mode,false);const x=75+mode*1060,y=183;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.fillStyle='#203b4c';g.font='bold 27px Arial';g.fillText(labels[mode],x+75,162);g.drawImage(off,x,y,1020,1134)}g.fillStyle='#71818a';g.font='19px Arial';g.fillText('1 W per source by default; target-oriented virtual apertures; independent phases; spherical propagation; ideal element patterns; educational model',85,1372);
+c.toBlob(b=>{if(b)dl(b,'WaveLab_reference_fields_3240px.png')},'image/png');
+}finally{state.data=orig.data;state.peakEx=orig.peakEx;state.peakFlux=orig.peakFlux;state.meanRaster=orig.meanRaster;btn.disabled=false;btn.textContent='论文图 PNG';dynamic();}}
+function exportCSV(){if(!state.data)return;const n=state.n,fields=state.data.fields;let lines=['x_m,y_m,Ex_re_Vpm,Ex_im_Vpm,Ex_instant_Vpm,Sz_instant_Wpcm2,Sz_cycle_mean_Wpcm2'];const co=Math.cos(TWO*state.t),si=Math.sin(TWO*state.t);for(let j=0;j<n;j++){const y=(.5-(j+.5)/n)*state.Ly;for(let i=0;i<n;i++){const x=((i+.5)/n-.5)*state.Lx,p=j*n+i,ex=fields.erx[p]*co+fields.eix[p]*si,ey=fields.ery[p]*co+fields.eiy[p]*si,hx=fields.hrx[p]*co+fields.hix[p]*si,hy=fields.hry[p]*co+fields.hiy[p]*si,sz=(ex*hy-ey*hx)/1e4;lines.push([x,y,fields.erx[p],fields.eix[p],ex,sz,fields.szAvg[p]].map(v=>Number(v).toPrecision(9)).join(','))}}
+dl(new Blob(['\ufeff',lines.join('\n')],{type:'text/csv;charset=utf-8'}),'WaveLab_fields_SI.csv')}
+compute();requestAnimationFrame(tick);
+})();
+
+</script>
+</body>
+</html>
