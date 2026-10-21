@@ -194,21 +194,27 @@ function makeColors(p){
  return a;
 }
 const lutE=makeColors(paletteE),lutS=makeColors(paletteS);
+function instantValue(f,index,co,si,mode){
+ const ex=f.erx[index]*co+f.eix[index]*si,ey=f.ery[index]*co+f.eiy[index]*si,ez=f.erz[index]*co+f.eiz[index]*si;
+ if(mode==="E")return Math.hypot(ex,ey,ez);
+ const hx=f.hrx[index]*co+f.hix[index]*si,hy=f.hry[index]*co+f.hiy[index]*si,hz=f.hrz[index]*co+f.hiz[index]*si;
+ return Math.hypot(ey*hz-ez*hy,ez*hx-ex*hz,ex*hy-ey*hx)/1e4;
+}
 function makeValues(axis){
- const d=state.data.axes[axis],f=d.fields,n=state.data.n,vals=new Float32Array(n*n),c=Math.cos(TWO*state.t),s=Math.sin(TWO*state.t);
+ const f=state.data.axes[axis].fields,sourceN=state.data.n;
+ // A 448-pixel plot needs no million-pixel repaints each animation frame.
+ // Keep the original high-resolution field arrays for numeric export.
+ const n=Math.min(sourceN,512),vals=new Float32Array(n*n),co=Math.cos(TWO*state.t),si=Math.sin(TWO*state.t);
  let max=0;
- for(let i=0;i<n*n;i++){
-  const ex=f.erx[i]*c+f.eix[i]*s,ey=f.ery[i]*c+f.eiy[i]*s,ez=f.erz[i]*c+f.eiz[i]*s;
-  let v;
-  if(state.mode==="E"){v=Math.hypot(ex,ey,ez);}
-  else{
-   const hx=f.hrx[i]*c+f.hix[i]*s,hy=f.hry[i]*c+f.hiy[i]*s,hz=f.hrz[i]*c+f.hiz[i]*s;
-   const sx=ey*hz-ez*hy,sy=ez*hx-ex*hz,sz=ex*hy-ey*hx;
-   v=Math.hypot(sx,sy,sz)/1e4;
+ for(let j=0;j<n;j++){
+  const srcJ=Math.min(sourceN-1,Math.floor((j+.5)*sourceN/n));
+  for(let i=0;i<n;i++){
+   const srcI=Math.min(sourceN-1,Math.floor((i+.5)*sourceN/n));
+   const v=instantValue(f,srcJ*sourceN+srcI,co,si,state.mode);
+   vals[j*n+i]=v;if(v>max)max=v;
   }
-  vals[i]=v;if(v>max)max=v;
  }
- return {vals,max};
+ return {n,vals,max};
 }
 function rawRaster(vals,scale,n){
  const canvas=document.createElement("canvas");canvas.width=n;canvas.height=n;
@@ -258,7 +264,7 @@ function drawDynamic(){
   const maps={},current={};const max=state.fixedScales[state.mode];
   for(const axis of F.AXES){current[axis]=makeValues(axis);}
   for(const axis of F.AXES){
-   maps[axis]=rawRaster(current[axis].vals,max,state.data.n);
+   maps[axis]=rawRaster(current[axis].vals,max,current[axis].n);
    drawSlice(axis,maps[axis],max);
   }
   state.rasters=maps;state.values=current;state.scale=max;
@@ -340,7 +346,8 @@ function showLens(axis,e){
  const cx=(uv.u*n-ix)/sw*444,cy=(uv.v*n-iy)/sw*444;g.strokeStyle="#fff";g.lineWidth=3;g.strokeRect(cx-11,cy-11,22,22);
  const xyz=F.planePoint(params(),axis,uv.u,uv.v),a=state.values[axis],i=F.clamp(Math.floor(uv.u*n),0,n-1),j=F.clamp(Math.floor(uv.v*n),0,n-1);
  $("lensCoord").textContent=F.AXES.map(k=>k+"="+fmt(xyz[k],2)).join("  ")+" m";
- $("lensReading").textContent=sci(a.vals[j*n+i])+(state.mode==="E"?" V/m":" W/cm²");
+ const direct=F.instantaneous(F.fieldAt(params(),xyz),state.t);
+ $("lensReading").textContent=sci(state.mode==="E"?direct.E:direct.S)+(state.mode==="E"?" V/m":" W/cm²");
  const div=$("lens");div.classList.add("show");div.setAttribute("aria-hidden","false");
  const W=244,H=322;
  let left=e.clientX+17,top=e.clientY+15;
@@ -406,11 +413,11 @@ function exportPNG(){
 }
 function exportCSV(){
  if(!state.data)return;
- const axis=$("csvAxis").value,n=state.data.n,prm=params(),vals=state.values[axis].vals;
+ const axis=$("csvAxis").value,n=state.data.n,prm=params(),f=state.data.axes[axis].fields,co=Math.cos(TWO*state.t),si=Math.sin(TWO*state.t);
  const lines=["x_m,y_m,z_m,"+(state.mode==="E"?"E_inst_Vpm":"Poynting_inst_Wpcm2")];
  for(let j=0;j<n;j++)for(let i=0;i<n;i++){
   const xyz=F.planePoint(prm,axis,(i+.5)/n,(j+.5)/n);
-  lines.push([xyz.x,xyz.y,xyz.z,vals[j*n+i]].map(x=>Number(x).toPrecision(8)).join(","));
+  lines.push([xyz.x,xyz.y,xyz.z,instantValue(f,j*n+i,co,si,state.mode)].map(x=>Number(x).toPrecision(8)).join(","));
  }
  download(new Blob(["\ufeff",lines.join("\n")],{type:"text/csv;charset=utf-8"}),"WaveLab_3D_"+axis+"_slice.csv");
 }
