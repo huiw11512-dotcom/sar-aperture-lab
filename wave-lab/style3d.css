@@ -53,7 +53,7 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
 .shared-scale{max-width:720px;margin:3px auto 8px;padding:3px 10px 0}
 .shared-scale-unit{text-align:center;display:block;font-size:15px;font-weight:720;margin:0 0 11px;color:#34576c}
 .shared-scale-track{display:flex;align-items:center;gap:15px;color:#426174;font-size:15px;font-variant-numeric:tabular-nums;font-weight:620}
-.shared-scale-gradient{height:19px;border:1px solid #bed2db;border-radius:3px;flex:1;background:linear-gradient(to right,#203ab2 0%,#276fec 20%,#2ebce0 40%,#f7f9fb 50%,#ffc06e 65%,#ed4c43 82%,#cf193e 100%)}
+.shared-scale-gradient{height:19px;border:1px solid #bed2db;border-radius:3px;flex:1;background:linear-gradient(to right,#203ab2 0%,#276fec 16.67%,#2ebce0 33.33%,#f7f9fb 50%,#ffc06e 66.67%,#ed4c43 83.33%,#cf193e 100%)}
 .shared-scale-track span:last-child{min-width:80px;text-align:right}
 .sampling-readout{font-size:14px;color:#356e82;line-height:1.55;padding:14px 0 0;font-weight:650;font-variant-numeric:tabular-nums}
 .resolution-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;padding:15px 3px 0;border-top:1px solid #edf2f5;margin-top:16px}
