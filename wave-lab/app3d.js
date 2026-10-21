@@ -4,7 +4,7 @@ const $=id=>document.getElementById(id),F=Field3D,PI=Math.PI,TWO=2*PI;
 const colors=["#177e97","#d17d45","#785cba","#2e9a80","#cc5d80","#988249","#5076b1","#668b93"];
 const state={
  freq:10,apX:5,apY:5,eta:.7,n:1000,pointsPerWave:8,centerX:0,centerY:0,savedOverview:null,Lx:50,Ly:50,Lz:60,zMin:0,
- target:{x:0,y:0,z:50},probe:{x:0,y:0,z:50},cuts:{x:0,y:0,z:50},
+ target:{x:0,y:0,z:50},cuts:{x:0,y:0,z:50},
  nodes:[{x:-3,y:-3,z:0,phase:0,power:1},{x:3,y:-3,z:0,phase:0,power:1},{x:-3,y:3,z:0,phase:0,power:1},{x:3,y:3,z:0,phase:0,power:1}],
  t:0,playing:false,speed:.5,mode:"E",data:null,rasters:{},tracePol:0
 };
@@ -50,16 +50,13 @@ function bind(){
   let v=Number($(id).value);if($(id).value.trim()===""||!Number.isFinite(v)||v<lo||v>hi){$(id).value=state[key];return;}
   state[key]=v;queue();
  }));
- ["x","y","z"].forEach(axis=>{
-  [["cut"+axis.toUpperCase(),state.cuts],["target"+axis.toUpperCase(),state.target],["probe"+axis.toUpperCase(),state.probe]]
-   .forEach(([id,obj])=>$(id).addEventListener("change",()=>{
-    const num=Number($(id).value);
-    if($(id).value.trim()===""||!Number.isFinite(num)||Math.abs(num)>1e7){$(id).value=obj[axis];return;}
-    obj[axis]=num;
-    if(obj===state.probe)drawTrace();
-    else queue();
-    updateExtras();
-   }));
+ F.AXES.forEach(axis=>{
+  const input=$("target"+axis.toUpperCase());
+  input.addEventListener("change",()=>{
+    const num=Number(input.value);
+    if(input.value.trim()===""||!Number.isFinite(num)||Math.abs(num)>1e7){input.value=state.target[axis];return;}
+    state.target[axis]=num;state.cuts={...state.target};queue();
+  });
  });
  $("pointsPerWave").addEventListener("change",()=>{state.pointsPerWave=Number($("pointsPerWave").value);queue();});
  $("localDetail").addEventListener("click",focusLocal);
@@ -79,18 +76,10 @@ function bind(){
   const canvas=$("plot"+axis.toUpperCase());
   canvas.addEventListener("pointermove",e=>showLens(axis,e));
   canvas.addEventListener("pointerleave",hideLens);
-  canvas.addEventListener("click",e=>{
-   const uv=plotUV(canvas,e);
-   if(!uv)return;
-   const p=F.planePoint(params(),axis,uv.u,uv.v);
-   state.probe={x:p.x,y:p.y,z:p.z};syncProbeInputs();updateExtras();drawDynamic();
-  });
+
  }
  window.addEventListener("blur",hideLens);
  window.addEventListener("scroll",hideLens,true);
-}
-function syncProbeInputs(){
- for(const a of F.AXES)if(document.activeElement!==$("probe"+a.toUpperCase()))$("probe"+a.toUpperCase()).value=fmt(state.probe[a],4);
 }
 function setMode(mode){
  state.mode=mode;$("modeE").classList.toggle("selected",mode==="E");$("modeS").classList.toggle("selected",mode==="S");drawDynamic();
@@ -116,27 +105,26 @@ function updateSampling(){
 }
 function syncViewInput(){
  for(const key of ["Lx","Ly","Lz","zMin"])$(key).value=Number(state[key].toFixed(6));
- for(const axis of F.AXES)$("cut"+axis.toUpperCase()).value=Number(state.cuts[axis].toFixed(6));
 }
 function focusLocal(){
- if(!state.savedOverview)state.savedOverview={Lx:state.Lx,Ly:state.Ly,Lz:state.Lz,zMin:state.zMin,centerX:state.centerX,centerY:state.centerY,cuts:{...state.cuts}};
+ if(!state.savedOverview)state.savedOverview={Lx:state.Lx,Ly:state.Ly,Lz:state.Lz,zMin:state.zMin,centerX:state.centerX,centerY:state.centerY};
  const lambda=F.C/(state.freq*1e9),windowSize=0.95*MAX_GRID*lambda/state.pointsPerWave;
  state.Lx=Math.min(state.Lx,windowSize);state.Ly=Math.min(state.Ly,windowSize);state.Lz=Math.min(state.Lz,windowSize);
- state.centerX=state.probe.x;state.centerY=state.probe.y;state.zMin=state.probe.z-state.Lz/2;
- state.cuts={...state.probe};
+ state.centerX=state.target.x;state.centerY=state.target.y;state.zMin=state.target.z-state.Lz/2;
+ state.cuts={...state.target};
  syncViewInput();queue();
 }
 function restoreOverview(){
  const view=state.savedOverview;
  if(!view)return;
  for(const key of ["Lx","Ly","Lz","zMin","centerX","centerY"])state[key]=view[key];
- state.cuts={...view.cuts};state.savedOverview=null;
+ state.cuts={...state.target};state.savedOverview=null;
  syncViewInput();queue();
 }
 function queue(){
  updateSampling();clearTimeout(timer);++job;
  if(worker){worker.terminate();worker=null;}
- $("status").textContent="准备计算…";$("exportPNG").disabled=true;$("exportCSV").disabled=true;
+ renderScene();$("status").textContent="准备计算…";$("exportPNG").disabled=true;$("exportCSV").disabled=true;
  timer=setTimeout(compute,160);
 }
 function compute(){
@@ -245,15 +233,14 @@ function drawSlice(axis,raster,scale,withMarkers=true,off){
  ctx.fillText(r.hName+" (m)",X0+SZ/2,Y0+SZ+64);
  ctx.save();ctx.translate(25,Y0+SZ/2);ctx.rotate(-Math.PI/2);ctx.fillText(r.vName+" (m)",0,0);ctx.restore();
  if(!withMarkers)return;
- [["target","#cb864a","T",7],["probe","#315b78","Q",5]].forEach(([key,col,label,rad])=>{
-  const pp=F.projectPoint(params(),axis,state[key]);
-  if(pp.u<0||pp.u>1||pp.v<0||pp.v>1)return;
-  const x=X0+pp.u*SZ,y=Y0+pp.v*SZ;
-  ctx.save();ctx.strokeStyle="#fff";ctx.fillStyle=col;ctx.lineWidth=2.8;
-  if(label==="T"){ctx.beginPath();ctx.moveTo(x,y-rad);ctx.lineTo(x+rad,y);ctx.lineTo(x,y+rad);ctx.lineTo(x-rad,y);ctx.closePath();ctx.fill();ctx.stroke();}
-  else{ctx.beginPath();ctx.arc(x,y,rad,0,TWO);ctx.fill();ctx.stroke();}
-  ctx.fillStyle=col;ctx.font="bold 17px Arial";ctx.textAlign="left";ctx.fillText(label,x+11,y-9);ctx.restore();
- });
+ const pp=F.projectPoint(params(),axis,state.target);
+ if(pp.u>=0&&pp.u<=1&&pp.v>=0&&pp.v<=1){
+  const x=X0+pp.u*SZ,y=Y0+pp.v*SZ,rad=7;
+  ctx.save();ctx.strokeStyle="#fff";ctx.fillStyle="#cb864a";ctx.lineWidth=2.8;
+  ctx.beginPath();ctx.moveTo(x,y-rad);ctx.lineTo(x+rad,y);ctx.lineTo(x,y+rad);ctx.lineTo(x-rad,y);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.font="bold 18px Arial";ctx.textAlign="left";ctx.fillText("T",x+10,y-9);ctx.restore();
+ }
+
 }
 function drawDynamic(){
  $("time").value=state.t;$("timeValue").textContent=fmt(state.t,3)+" T";
@@ -274,23 +261,7 @@ function drawDynamic(){
  }finally{rendering=false;}
 }
 function updateExtras(){
- for(const a of F.AXES){
-  $("label"+a.toUpperCase()).textContent=a+" = "+fmt(state.cuts[a],2)+" m";
-  $("probe"+a.toUpperCase()).value=fmt(state.probe[a],4);
- }
- const t=state.target,q=state.probe;
- const dist=state.nodes.map((n,i)=>{
-  const dt=Math.hypot(t.x-n.x,t.y-n.y,t.z-n.z),dq=Math.hypot(q.x-n.x,q.y-n.y,q.z-n.z);
-  return "节点 "+(i+1)+"：到 T "+fmt(dt,2)+" m · 到 Q "+fmt(dq,2)+" m";
- });
- $("distances").innerHTML=dist.map(escapeHTML).join("<br>");
- $("geometryInfo").innerHTML="<span><strong>目标 T</strong> ("+[t.x,t.y,t.z].map(v=>fmt(v,1)).join(", ")+") m</span><span><strong>观察点 Q</strong> ("+[q.x,q.y,q.z].map(v=>fmt(v,1)).join(", ")+") m</span>";
- renderScene();
- if(state.data){
-  const p=params(),point=F.fieldAt(p,q),sample=F.instantaneous(point,state.t);
-  $("probeInfo").innerHTML="<span><strong>|E|</strong> "+sci(sample.E)+" V/m</span><span><strong>|S|</strong> "+sci(sample.S)+" W/cm²</span>";
-  // Sampling budget is explained once by updateSampling(), not overwritten every animation frame.
- }
+ for(const a of F.AXES)$("label"+a.toUpperCase()).textContent=a+" = "+fmt(state.target[a],2)+" m";
 }
 function iso(p){
  const nx=(p.x-state.centerX)/state.Lx,ny=(p.y-state.centerY)/state.Ly,nz=(p.z-state.zMin)/state.Lz-.5;
@@ -358,7 +329,7 @@ function showLens(axis,e){
 function drawTrace(){
  const c=$("trace"),g=c.getContext("2d"),W=c.width,H=c.height;
  g.clearRect(0,0,W,H);g.fillStyle="#fff";g.fillRect(0,0,W,H);
- const p=params(),phasors=state.nodes.map((n,i)=>F.fieldAt(p,state.probe,i)),total=F.fieldAt(p,state.probe);
+ const p=params(),phasors=state.nodes.map((n,i)=>F.fieldAt(p,state.target,i)),total=F.fieldAt(p,state.target);
  const comps=[["erx","eix"],["ery","eiy"],["erz","eiz"]];
  const magnitudes=comps.map(k=>Math.hypot(total[k[0]],total[k[1]]));
  let dim=magnitudes.indexOf(Math.max(...magnitudes)),k=comps[dim],axisName=["x","y","z"][dim];
@@ -421,5 +392,5 @@ function exportCSV(){
  }
  download(new Blob(["\ufeff",lines.join("\n")],{type:"text/csv;charset=utf-8"}),"WaveLab_3D_"+axis+"_slice.csv");
 }
-bind();renderNodes();updateExtras();drawTrace();queue();requestAnimationFrame(tick);
+bind();renderNodes();updateExtras();drawTrace();initSceneControls();queue();requestAnimationFrame(tick);
 })();
