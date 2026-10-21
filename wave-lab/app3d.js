@@ -45,6 +45,228 @@ function renderNodes(){
   e.appendChild(cells);root.appendChild(e);
  });
 }
+
+function ePhasorPower(a){
+ return a.erx*a.erx+a.eix*a.eix+a.ery*a.ery+a.eiy*a.eiy+a.erz*a.erz+a.eiz*a.eiz;
+}
+function updateTargetCoherence(){
+ if(!state.data)return;
+ const prm=params(),total=F.fieldAt(prm,state.target),combined=ePhasorPower(total);
+ let reference=0;
+ for(let i=0;i<state.nodes.length;i++)reference+=ePhasorPower(F.fieldAt(prm,state.target,i));
+ const ratio=reference>1e-30?combined/reference:NaN;
+ state.coherenceRatio=ratio;
+ if(!Number.isFinite(ratio)){
+  $("coherenceStat").textContent="—";
+  $("coherenceSub").textContent="目标点无有效辐射贡献";
+ }else{
+  $("coherenceStat").textContent=(ratio*100).toFixed(1)+"%";
+  $("coherenceSub").textContent=ratio<.999
+   ?"相消："+((1-ratio)*100).toFixed(1)+"%（相对单节点功率和）"
+   :ratio>1.001
+    ?"相长："+((ratio-1)*100).toFixed(1)+"%（相对单节点功率和）"
+    :"接近单节点功率和";
+ }
+}
+function selectedStudyAxis(){
+ return state.studyPlane.active?state.studyPlane.axis:$("studyAxis").value;
+}
+function updateStudyPlaneTitle(){
+ if(!$("studyPlaneTitle"))return;
+ const axis=selectedStudyAxis(),names={x:"YZ",y:"XZ",z:"XY"};
+ $("studyPlaneTitle").textContent=names[axis]+" 平面 · "+axis+" = "+fmt(state.cuts[axis],3)+" m";
+ $("planeRangeLabel").textContent="当前"+names[axis]+"截面 "+(state.mode==="E"?"电场最小 / 最大":"功率通量最小 / 最大");
+ $("scanFieldTitle").textContent=state.mode==="E"?"目标穿面瞬时电场 |E(t)|":"目标穿面瞬时功率通量 |S(t)|";
+}
+function updateStudyReadouts(){
+ if(!state.data)return;
+ const inst=F.instantaneous(F.fieldAt(params(),state.target),state.t);
+ $("targetEStat").textContent=sci(inst.E);
+ $("targetSStat").textContent=sci(inst.S);
+ updateStudyPlaneTitle();
+ const axis=selectedStudyAxis(),view=state.values&&state.values[axis];
+ if(!view||!view.vals.length)return;
+ const vals=view.vals,n=view.n;
+ let min=Infinity,max=-Infinity,minI=0,maxI=0;
+ for(let i=0;i<vals.length;i++){
+  const v=vals[i];
+  if(v<min){min=v;minI=i;}
+  if(v>max){max=v;maxI=i;}
+ }
+ const r=F.ranges(params(),axis);
+ function position(index){
+  const ix=index%n,iy=Math.floor(index/n);
+  const h=r.hMin+(ix+.5)/n*(r.hMax-r.hMin),v=r.vMax-(iy+.5)/n*(r.vMax-r.vMin);
+  const p={x:state.cuts.x,y:state.cuts.y,z:state.cuts.z};p[r.hName]=h;p[r.vName]=v;
+  return p;
+ }
+ const pMin=position(minI),pMax=position(maxI),unit=state.mode==="E"?"V/m":"W/cm²";
+ $("planeRangeStat").textContent=sci(min)+" – "+sci(max)+" "+unit;
+ $("planeRangeSub").textContent="最小 ("+fmt(pMin.x,2)+", "+fmt(pMin.y,2)+", "+fmt(pMin.z,2)+") m · 最大 ("+fmt(pMax.x,2)+", "+fmt(pMax.y,2)+", "+fmt(pMax.z,2)+") m";
+}
+function readStudyControls(){
+ const axis=$("studyAxis").value,coord=Number($("studyCoord").value),span=Number($("scanSpan").value);
+ if(!["x","y","z"].includes(axis))throw Error("请选择 X、Y 或 Z 法向平面。");
+ if($("studyCoord").value.trim()===""||!Number.isFinite(coord)||Math.abs(coord)>1e7)throw Error("平面位置必须是有效的米制坐标。");
+ if($("scanSpan").value.trim()===""||!Number.isFinite(span)||span<.1||span>1000)throw Error("穿面半宽范围为 0.1–1000 λ。");
+ state.scanSpan=span;
+ return {axis,coord,span};
+}
+function activateStudyPlane(plane,shouldQueue=true){
+ const changed=!state.studyPlane.active||state.studyPlane.axis!==plane.axis||Math.abs(state.cuts[plane.axis]-plane.coord)>1e-10;
+ state.studyPlane={axis:plane.axis,coord:plane.coord,active:true};
+ state.cuts={...state.target};state.cuts[plane.axis]=plane.coord;
+ $("studyAxis").value=plane.axis;$("studyCoord").value=String(plane.coord);$("scanSpan").value=String(plane.span??state.scanSpan);
+ updateStudyPlaneTitle();renderScene();
+ if(shouldQueue&&changed)queue();
+}
+function detectStudyPlane(){
+ const axisInfo=F.AXES.map(axis=>{
+  const vals=state.nodes.map(n=>n[axis]),min=Math.min(...vals),max=Math.max(...vals);
+  return {axis,min,max,spread:max-min,coord:vals.reduce((a,b)=>a+b,0)/vals.length};
+ }).sort((a,b)=>a.spread-b.spread);
+ const best=axisInfo[0],lambda=F.C/(state.freq*1e9);
+ activateStudyPlane({axis:best.axis,coord:best.coord,span:state.scanSpan},true);
+ const tolerance=lambda*.05;
+ $("status").textContent=best.spread<=tolerance
+  ?"已识别共面方向 · 最大厚度 "+sci(best.spread)+" m"
+  :"已选择节点最薄方向 · 厚度 "+sci(best.spread)+" m，可投影到该平面";
+}
+function applyStudyPlane(){
+ try{activateStudyPlane(readStudyControls(),true);}
+ catch(e){alert(e.message);}
+}
+function projectNodesToPlane(){
+ let plane;
+ try{plane=readStudyControls();}
+ catch(e){alert(e.message);return;}
+ const axisName=plane.axis.toUpperCase();
+ if(!confirm("将全部 "+state.nodes.length+" 个节点的 "+axisName+" 坐标改为 "+plane.coord+" m？\n其余坐标、相位和功率保持不变。"))return;
+ state.nodes.forEach(n=>n[plane.axis]=plane.coord);
+ activateStudyPlane(plane,false);renderNodes();queue();
+}
+function drawLineChart(canvas,points,key,opts){
+ const g=canvas.getContext("2d"),w=canvas.width,h=canvas.height;
+ g.clearRect(0,0,w,h);g.fillStyle="#fff";g.fillRect(0,0,w,h);
+ const left=92,right=25,top=28,bottom=56,pw=w-left-right,ph=h-top-bottom;
+ const values=points.map(p=>p[key]),maxV=opts.reference===undefined?Math.max(1e-30,...values)*1.1:Math.max(opts.reference,...values)*1.12;
+ const minV=0,xAt=i=>left+i/Math.max(1,points.length-1)*pw,yAt=v=>top+ph-(v-minV)/(maxV-minV||1)*ph;
+ g.font="16px Arial";g.textAlign="right";g.textBaseline="middle";g.fillStyle="#536e7e";
+ for(let i=0;i<=4;i++){
+  const v=maxV*i/4,y=yAt(v);g.strokeStyle="#e7eef2";g.lineWidth=1;g.beginPath();g.moveTo(left,y);g.lineTo(w-right,y);g.stroke();
+  g.fillText(opts.formatY?opts.formatY(v):sci(v),left-12,y);
+ }
+ const span=opts.span||1;g.textAlign="center";g.textBaseline="top";
+ for(let i=0;i<=4;i++){
+  const x=left+pw*i/4;g.strokeStyle="#edf2f5";g.beginPath();g.moveTo(x,top);g.lineTo(x,h-bottom);g.stroke();
+  g.fillStyle="#536e7e";g.fillText(fmt(-span+2*span*i/4,1),x,h-bottom+11);
+ }
+ const zeroX=left+pw/2;g.save();g.setLineDash([6,5]);g.strokeStyle="#718a99";g.lineWidth=1.5;g.beginPath();g.moveTo(zeroX,top);g.lineTo(zeroX,h-bottom);g.stroke();g.restore();
+ if(opts.reference!==undefined&&opts.reference<=maxV){
+  const y=yAt(opts.reference);g.save();g.setLineDash([5,4]);g.strokeStyle="#c77743";g.lineWidth=1.5;g.beginPath();g.moveTo(left,y);g.lineTo(w-right,y);g.stroke();g.restore();
+  g.fillStyle="#a76336";g.textAlign="left";g.textBaseline="bottom";g.fillText("100%参考",left+7,y-3);
+ }
+ g.strokeStyle=opts.color||"#2455c6";g.lineWidth=2.8;g.lineJoin="round";g.lineCap="round";g.beginPath();
+ values.forEach((v,i)=>{const x=xAt(i),y=yAt(v);if(i===0)g.moveTo(x,y);else g.lineTo(x,y);});g.stroke();
+ let peakI=0;for(let i=1;i<values.length;i++)if(values[i]>values[peakI])peakI=i;
+ g.fillStyle=opts.color||"#2455c6";g.beginPath();g.arc(xAt(peakI),yAt(values[peakI]),5,0,TWO);g.fill();
+ g.fillStyle="#34586b";g.font="bold 17px Arial";g.textAlign="center";g.textBaseline="bottom";g.fillText(opts.yLabel,left+pw/2,top-6);
+ g.font="16px Arial";g.textBaseline="bottom";g.fillText("相对节点平面位置 / λ",left+pw/2,h-4);
+}
+function drawScanPlot(){
+ const c1=$("planeScanField"),c2=$("planeScanRatio");if(!c1||!c2)return;
+ const empty=(c,text)=>{
+  const g=c.getContext("2d");g.clearRect(0,0,c.width,c.height);g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);
+  g.fillStyle="#6a8291";g.font="bold 20px Arial";g.textAlign="center";g.textBaseline="middle";g.fillText(text,c.width/2,c.height/2);
+ };
+ if(!state.scanResult){
+  empty(c1,"点击“扫描目标穿面”生成场强曲线");empty(c2,"扫描后显示相干合成比");$("exportScan").disabled=true;return;
+ }
+ const r=state.scanResult,mode=state.mode,key=mode==="E"?"E":"S",unit=mode==="E"?"V/m":"W/cm²";
+ $("scanFieldTitle").textContent=mode==="E"?"目标穿面瞬时电场 |E(t)|":"目标穿面瞬时功率通量 |S(t)|";
+ const points=r.points.map(p=>({...p,ratioPct:p.ratio*100}));
+ drawLineChart(c1,points,key,{span:r.span,color:mode==="E"?"#2455d4":"#d9434e",yLabel:mode==="E"?"|E(t)| · V/m":"|S(t)| · W/cm²"});
+ drawLineChart(c2,points,"ratioPct",{span:r.span,color:"#d9434e",reference:100,formatY:v=>v.toFixed(0)+"%",yLabel:"矢量相干合成比 / %"});
+ let lo=0,hi=0;for(let i=1;i<points.length;i++){if(points[i][key]<points[lo][key])lo=i;if(points[i][key]>points[hi][key])hi=i;}
+ let rMin=Infinity,rMax=-Infinity;for(const p of points){rMin=Math.min(rMin,p.ratioPct);rMax=Math.max(rMax,p.ratioPct);}
+ $("scanSummary").textContent="穿面方向 "+r.axis.toUpperCase()+" · 峰值 "+sci(points[hi][key])+" "+unit+"（"+fmt(points[hi].offsetLambda,2)+" λ）· 谷值 "+sci(points[lo][key])+" "+unit+"（"+fmt(points[lo].offsetLambda,2)+" λ）· 相干比 "+fmt(rMin,1)+"%–"+fmt(rMax,1)+"% · 扫描时刻 t/T="+fmt(r.t,3);
+ $("exportScan").disabled=false;
+}
+function scanThroughPlane(){
+ let plane;try{plane=readStudyControls();}catch(e){alert(e.message);return;}
+ activateStudyPlane(plane,true);state.scanResult=null;drawScanPlot();
+ const lambda=F.C/(state.freq*1e9),points=[],count=121,base=params();
+ for(let i=0;i<count;i++){
+  const offset=-plane.span+2*plane.span*i/(count-1),coordinate=plane.coord+offset*lambda;
+  const xyz={...state.target,[plane.axis]:coordinate},prm={...base,target:xyz};
+  const total=F.fieldAt(prm,xyz),inst=F.instantaneous(total,state.t);let reference=0;
+  for(let k=0;k<state.nodes.length;k++)reference+=ePhasorPower(F.fieldAt(prm,xyz,k));
+  const ratio=reference>1e-30?ePhasorPower(total)/reference:0;
+  points.push({offsetLambda:offset,coordinate,E:inst.E,S:inst.S,ratio});
+ }
+ state.scanResult={axis:plane.axis,coord:plane.coord,span:plane.span,lambda,t:state.t,points};drawScanPlot();
+}
+function exportScanCSV(){
+ if(!state.scanResult)return;
+ const r=state.scanResult,lines=["offset_lambda,coordinate_m,E_inst_Vpm,Poynting_inst_Wpcm2,coherent_ratio_percent,time_over_T"];
+ r.points.forEach(p=>lines.push([p.offsetLambda,p.coordinate,p.E,p.S,p.ratio*100,r.t].map(v=>Number(v).toPrecision(10)).join(",")));
+ download(new Blob(["\ufeff",lines.join("\n")],{type:"text/csv;charset=utf-8"}),"WaveLab_plane_crossing_scan.csv");
+}
+function configObject(){
+ return {
+  application:"Wave Lab",schemaVersion:1,exportedAt:new Date().toISOString(),
+  parameters:{freq:state.freq,apX:state.apX,apY:state.apY,eta:state.eta,pointsPerWave:state.pointsPerWave,
+   Lx:state.Lx,Ly:state.Ly,Lz:state.Lz,zMin:state.zMin,centerX:state.centerX,centerY:state.centerY,
+   target:{...state.target},cuts:{...state.cuts},nodes:state.nodes.map(n=>({x:n.x,y:n.y,z:n.z,phase:n.phase,power:n.power}))},
+  study:{axis:$("studyAxis").value,coord:Number($("studyCoord").value),active:state.studyPlane.active,scanSpan:state.scanSpan},
+  display:{mode:state.mode,t:state.t,speed:state.speed,scaleFactor:{...state.scaleFactor}}
+ };
+}
+function exportConfig(){
+ const json=JSON.stringify(configObject(),null,2),stamp=new Date().toISOString().replace(/[:.]/g,"-");
+ download(new Blob([json],{type:"application/json;charset=utf-8"}),"WaveLab_config_"+stamp+".json");
+}
+function validNumber(value,fallback,min,max,label){
+ const v=value===undefined?fallback:Number(value);
+ if(!Number.isFinite(v)||v<min||v>max)throw Error("配置参数无效："+label);
+ return v;
+}
+async function importConfig(file){
+ try{
+  const root=JSON.parse(await file.text()),p=root.parameters||root;
+  if(!p||!Array.isArray(p.nodes)||p.nodes.length<1||p.nodes.length>64)throw Error("配置必须包含 1–64 个节点。");
+  const num=(v,d,lo,hi,label)=>validNumber(v,d,lo,hi,label);
+  const nodeList=p.nodes.map((n,i)=>({
+   x:num(n.x,0,-1e7,1e7,"节点"+(i+1)+" X"),y:num(n.y,0,-1e7,1e7,"节点"+(i+1)+" Y"),
+   z:num(n.z,0,-1e7,1e7,"节点"+(i+1)+" Z"),phase:num(n.phase,0,-1e12,1e12,"节点"+(i+1)+" 相位"),
+   power:num(n.power,1,0,Number.MAX_VALUE,"节点"+(i+1)+" 功率")
+  }));
+  const target={x:num(p.target?.x,state.target.x,-1e7,1e7,"目标 X"),y:num(p.target?.y,state.target.y,-1e7,1e7,"目标 Y"),z:num(p.target?.z,state.target.z,-1e7,1e7,"目标 Z")};
+  const cuts={x:num(p.cuts?.x,target.x,-1e7,1e7,"X 截面"),y:num(p.cuts?.y,target.y,-1e7,1e7,"Y 截面"),z:num(p.cuts?.z,target.z,-1e7,1e7,"Z 截面")};
+  state.freq=num(p.freq,state.freq,.2,100,"频率");state.apX=num(p.apX,state.apX,.5,30,"口径长");state.apY=num(p.apY,state.apY,.5,30,"口径宽");state.eta=num(p.eta,state.eta,.01,1,"口面效率");
+  const pp=num(p.pointsPerWave,state.pointsPerWave,8,16,"每波长采样");if(![8,16].includes(pp))throw Error("每波长采样只能是 8 或 16。");state.pointsPerWave=pp;
+  state.Lx=num(p.Lx,state.Lx,.05,500,"X 范围");state.Ly=num(p.Ly,state.Ly,.05,500,"Y 范围");state.Lz=num(p.Lz,state.Lz,.05,500,"Z 范围");state.zMin=num(p.zMin,state.zMin,-1e6,1e6,"Z 起点");
+  state.centerX=num(p.centerX,0,-1e7,1e7,"视图中心 X");state.centerY=num(p.centerY,0,-1e7,1e7,"视图中心 Y");
+  state.target=target;state.cuts=cuts;state.nodes=nodeList;
+  const st=root.study||{},axis=["x","y","z"].includes(st.axis)?st.axis:"x";
+  state.scanSpan=num(st.scanSpan,state.scanSpan,.1,1000,"穿面半宽");
+  state.studyPlane={axis,coord:num(st.coord,cuts[axis],-1e7,1e7,"研究平面位置"),active:!!st.active};
+  if(state.studyPlane.active)state.cuts[axis]=state.studyPlane.coord;
+  const d=root.display||{};
+  state.mode=d.mode==="S"?"S":"E";state.t=num(d.t,state.t,0,1,"周期时刻");
+  state.speed=[.25,.5,1].includes(Number(d.speed))?Number(d.speed):.5;
+  if(d.scaleFactor)for(const m of ["E","S"])if(Number.isFinite(Number(d.scaleFactor[m]))&&Number(d.scaleFactor[m])>0)state.scaleFactor[m]=F.clamp(Number(d.scaleFactor[m]),1e-8,100);
+  state.savedOverview=null;state.scanResult=null;state.coherenceRatio=null;
+  $("freq").value=state.freq;$("apX").value=state.apX;$("apY").value=state.apY;$("eta").value=state.eta;$("pointsPerWave").value=String(state.pointsPerWave);
+  $("Lx").value=state.Lx;$("Ly").value=state.Ly;$("Lz").value=state.Lz;$("zMin").value=state.zMin;
+  $("targetX").value=target.x;$("targetY").value=target.y;$("targetZ").value=target.z;
+  $("studyAxis").value=axis;$("studyCoord").value=state.studyPlane.coord;$("scanSpan").value=state.scanSpan;$("count").value=state.nodes.length;
+  $("time").value=state.t;$("speed").value=state.speed;
+  $("modeE").classList.toggle("selected",state.mode==="E");$("modeS").classList.toggle("selected",state.mode==="S");
+  renderNodes();syncViewInput();drawScanPlot();updateExtras();queue();
+ }catch(e){alert("配置导入失败。\n"+(e&&e.message?e.message:String(e)));}
+}
+
 function bind(){
  const numbers=[["freq","freq",.2,100],["apX","apX",.5,30],["apY","apY",.5,30],["eta","eta",.01,1],
  ["Lx","Lx",.05,500],["Ly","Ly",.05,500],["Lz","Lz",.05,500],["zMin","zMin",-1e6,1e6]];
