@@ -62,3 +62,17 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
 .hintline{font-size:14px;color:#b0552e;line-height:1.6;padding:8px 4px 0;margin-top:3px}
 .top-actions{gap:10px}
 @media(max-width:780px){.shared-scale{margin:4px 0 10px}.shared-scale-track{gap:8px}.resolution-summary{flex-basis:100%;min-width:0}.resolution-actions{justify-content:flex-start}}
+
+/* V8: readable labels, interactive orbit scene, no metadata confetti */
+.fields.triple label{font-size:14px;font-weight:700}
+.node-fields label{font-size:13px;color:#536d7d}
+.node-fields input{font-size:15px;height:40px}
+.slice h3 span{font-size:15px}
+.scene{height:310px;cursor:grab;touch-action:none;user-select:none;border:1px solid #dce8ee;background:#fbfdfe}
+.scene.dragging{cursor:grabbing}
+.scene-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.scene-heading h2{margin:0!important}
+.scene-heading button{font-size:14px;padding:8px 12px}
+.legend{font-size:14px;gap:9px 17px}
+.footer{font-size:14px}
+@media(max-width:780px){.scene{height:285px}.fields.triple label{font-size:14px}}
