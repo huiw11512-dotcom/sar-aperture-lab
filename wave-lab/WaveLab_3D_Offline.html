@@ -37,8 +37,8 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
 .info{display:flex;gap:8px 14px;flex-wrap:wrap;color:#526e7f;font-size:13px;margin-top:12px}.info strong{color:#1c4456}
 .details{border-top:1px solid #e8eff2;margin-top:14px;padding-top:12px}.details summary{cursor:pointer;font-weight:630;color:#718696;font-size:13px}.details div{font-size:13px;line-height:1.85;color:#607a89;margin-top:9px}
 .footer{margin:22px 0 0;display:flex;justify-content:flex-end;gap:16px;font-size:13px}.footer a{color:#6d8796;text-decoration:none}.footer a:hover{text-decoration:underline}
-.lens{position:fixed;display:none;pointer-events:none;width:244px;background:#fff;padding:10px;border:1px solid #cfdee5;border-radius:12px;box-shadow:0 15px 45px rgba(28,51,63,.17);z-index:20}
-.lens.show{display:block}.lens-head{font-size:13px;font-weight:740;margin-bottom:8px}.lens canvas{width:222px;height:222px;border:1px solid #dce6ec;image-rendering:pixelated}.lens-pos{font-family:Consolas,monospace;font-size:12px;margin-top:7px;color:#375a69}.lens-val,.lens-max-val{font-family:Consolas,monospace;font-size:13px;font-weight:650;margin-top:8px;color:#244b61}.lens-max-val{padding-top:7px;border-top:1px solid #dce6ec;color:#bd2844}
+.lens{position:fixed;display:none;pointer-events:none;width:270px;background:#fff;padding:10px;border:1px solid #cfdee5;border-radius:12px;box-shadow:0 15px 45px rgba(28,51,63,.17);z-index:20}
+.lens.show{display:block}.lens-head{font-size:15px;font-weight:760;margin-bottom:8px}.lens canvas{width:248px;height:248px;border:1px solid #dce6ec;image-rendering:pixelated}.lens-pos{font-family:Consolas,monospace;font-size:13px;line-height:1.5;margin-top:7px;color:#375a69}.lens-val,.lens-max-val{font-family:Consolas,monospace;font-size:14px;line-height:1.5;font-weight:750;margin-top:8px;color:#244b61}.lens-max-val{margin-top:9px;padding:8px 7px;border-top:2px solid #cf193e;border-radius:5px;background:#fff5f6;color:#a91532}
 @media(max-width:1440px){.app{grid-template-columns:285px minmax(0,1fr)}.main{padding:22px}.figure-layout{gap:7px}.figure{padding:14px}.panel{padding:15px}}
 @media(max-width:1020px){.figure-layout{grid-template-columns:repeat(2,minmax(0,1fr))}.lower{grid-template-columns:1fr}.figure-layout .slice:last-child{max-width:570px}}
 @media(max-width:780px){.app{display:block}.sidebar{max-height:none;position:static;padding:20px}.main{padding:14px}.figure-layout{grid-template-columns:1fr}.figure-layout .slice:last-child{max-width:none}.workbar{gap:10px}.slice{max-width:600px;margin:auto}.lower{grid-template-columns:1fr}}
@@ -115,7 +115,7 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
 .scene-heading h2{margin:0 0 13px;font-size:19px}
 #studyPlaneTitle{font-size:15px;font-weight:650;color:#436678;margin-bottom:13px}
 /* Restore the simpler main view: hide the experimental coplanar-analysis UI. */
-#studyControls,.study-panel{display:none!important}
+#studyControls,.study-panel{display:none!important;visibility:hidden!important}
 .study-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:6px 0 22px}
 .study-metric{border:1px solid #dce7eb;background:#fbfdfe;border-radius:11px;padding:15px;min-width:0}
 .study-metric label{font-size:14px;color:#526f80;margin-bottom:8px}
@@ -1177,7 +1177,7 @@ function showLens(axis,e){
  $("lensReading").textContent="瞬时值："+sci(current)+unit;
  $("lensMaxReading").textContent="周期最大值："+sci(cycleMax)+unit;
  const div=$("lens");div.classList.add("show");div.setAttribute("aria-hidden","false");
- const W=244,H=354;
+ const W=270,H=392;
  let left=e.clientX+17,top=e.clientY+15;
  if(left+W>window.innerWidth-5)left=e.clientX-W-17;
  if(top+H>window.innerHeight-5)top=e.clientY-H-17;
