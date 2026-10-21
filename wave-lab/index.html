@@ -33,6 +33,7 @@
    <div><label for="studyAxis">平面法向</label><select id="studyAxis"><option value="x" selected>X · YZ 平面</option><option value="y">Y · XZ 平面</option><option value="z">Z · XY 平面</option></select></div>
    <div><label for="studyCoord">平面位置 / m</label><input id="studyCoord" type="number" step="any" value="0"></div>
    <div><label for="scanSpan">穿面半宽 / λ</label><input id="scanSpan" type="number" min=".1" max="1000" step="any" value="5"></div>
+   <div><label for="scanAimMode">扫描时天线朝向</label><select id="scanAimMode"><option value="track" selected>随目标跟踪</option><option value="fixed">保持当前朝向</option></select></div>
   </div>
   <div class="inline-actions study-actions"><button id="detectStudyPlane" type="button">识别节点平面</button><button id="applyStudyPlane" type="button">查看该平面</button></div>
   <div class="inline-actions study-actions"><button id="projectNodes" type="button">节点投影到平面</button><button id="scanThroughPlane" class="primary" type="button">扫描目标穿面</button></div>
