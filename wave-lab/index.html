@@ -53,10 +53,6 @@
     <label class="max-toggle" for="showMaxPoint"><input id="showMaxPoint" type="checkbox" checked>显示最大值点</label>
     <div class="mode"><button id="modeE" class="selected">瞬时电场 |E|</button><button id="modeS">瞬时功率通量 |S|</button></div>
   </div></div>
-  <div id="maxPointReadout" class="max-point-readout" aria-live="polite">
-    <div id="globalMaxText" class="max-global">三切片全局最大值：计算中…</div>
-    <div id="localMaxText" class="max-local">各截面局部最大值：计算中…</div>
-  </div>
   <div class="figure-layout">
    <div class="slice"><h3>YZ 截面 <span id="labelX">x = 0 m</span></h3><canvas id="plotX" width="580" height="568" aria-label="YZ 截面场图"></canvas></div>
    <div class="slice"><h3>XZ 截面 <span id="labelY">y = 0 m</span></h3><canvas id="plotY" width="580" height="568" aria-label="XZ 截面场图"></canvas></div>
@@ -100,5 +96,5 @@
  
 </main></div>
 <div id="lens" class="lens" aria-hidden="true"><div class="lens-head">局部放大 · 5×</div><canvas id="lensCanvas" width="444" height="444"></canvas><div class="lens-pos" id="lensCoord">—</div><div class="lens-val" id="lensReading">—</div><div class="lens-max-val" id="lensMaxReading">—</div></div>
-<script src="./physics3d.js?v=20261022-0055"></script><script src="./app3d.js?v=20261022-maxpoint1"></script>
+<script src="./physics3d.js?v=20261022-zpol2"></script><script src="./app3d.js?v=20261022-colorscale2"></script>
 </body></html>
