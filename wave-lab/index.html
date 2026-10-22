@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f3f6f8">
-<title>Wave Lab | 三维空间切片</title><link rel="stylesheet" href="./style3d.css?v=20261022-colorscale2"></head>
+<title>Wave Lab | 三维空间切片</title><link rel="stylesheet" href="./style3d.css?v=20261022-cyclemax1"></head>
 <body><div class="app">
 <aside class="sidebar">
  <div class="brand"><div class="mark">∿</div><div class="brand-text">Wave Lab</div></div>
@@ -49,7 +49,7 @@
    <div class="timeline"><label for="time">周期时刻 <span id="timeValue" class="value">0.000 T</span></label><input type="range" id="time" min="0" max="1" step=".001" value="0"></div>
    <div class="speed"><label for="speed">播放速度</label><select id="speed"><option value=".25">慢</option><option value=".5" selected>中</option><option value="1">快</option></select></div>
  </div>
- <section class="figure card"><div class="fig-head"><h2>空间场分布</h2><div class="fig-tools">
+ <section class="figure card"><div class="fig-head"><h2>空间场分布</h2><div class="field-max-readout" aria-live="polite" aria-label="周期内最大总场强"><div class="field-max-row"><span>悬浮点周期最大总场强</span><strong id="hoverTotalEmax">悬停查看</strong></div><div class="field-max-row"><span>目标点周期最大总场强</span><strong id="targetTotalEmax">—</strong></div></div><div class="fig-tools">
     <label class="max-toggle" for="showMaxPoint"><input id="showMaxPoint" type="checkbox" checked>显示最大值点</label>
     <div class="mode"><button id="modeE" class="selected">瞬时电场 |E|</button><button id="modeS">瞬时功率通量 |S|</button></div>
   </div></div>
@@ -96,5 +96,5 @@
  
 </main></div>
 <div id="lens" class="lens" aria-hidden="true"><div class="lens-head">局部放大 · 5×</div><canvas id="lensCanvas" width="444" height="444"></canvas><div class="lens-pos" id="lensCoord">—</div><div class="lens-val" id="lensReading">—</div><div class="lens-max-val" id="lensMaxReading">—</div></div>
-<script src="./physics3d.js?v=20261022-zpol2"></script><script src="./app3d.js?v=20261022-colorscale2"></script>
+<script src="./physics3d.js?v=20261022-zpol2"></script><script src="./app3d.js?v=20261022-cyclemax1"></script>
 </body></html>
