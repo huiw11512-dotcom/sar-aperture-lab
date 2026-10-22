@@ -6,7 +6,7 @@ const state={
  freq:10,apX:5,apY:5,eta:.7,n:1000,pointsPerWave:8,centerX:0,centerY:0,savedOverview:null,Lx:50,Ly:50,Lz:60,zMin:0,
  target:{x:0,y:10,z:20},cuts:{x:0,y:10,z:20},
  nodes:[{x:0,y:25,z:25,phase:-63,power:1},{x:0,y:25,z:-25,phase:-38,power:1},{x:0,y:-25,z:25,phase:-110,power:1},{x:0,y:-25,z:-25,phase:-3,power:1}],
- t:0,playing:false,speed:.5,mode:"E",data:null,rasters:{},scaleFactor:{E:1,S:1},tracePol:0,
+ t:0,playing:false,speed:.5,mode:"E",data:null,rasters:{},scaleFactor:{E:1,S:1},manualScale:{E:null,S:null},tracePol:0,
  studyPlane:{axis:"x",coord:0,active:false},scanSpan:5,scanAimMode:"track",scanResult:null,coherenceRatio:null
 };
 let worker=null,job=0,timer=null,lastTime=0,lastPaint=0,hover=null,rendering=false,maxPointData=null;
@@ -241,7 +241,7 @@ function configObject(){
    Lx:state.Lx,Ly:state.Ly,Lz:state.Lz,zMin:state.zMin,centerX:state.centerX,centerY:state.centerY,
    target:{...state.target},cuts:{...state.cuts},nodes:state.nodes.map(n=>({x:n.x,y:n.y,z:n.z,phase:n.phase,power:n.power}))},
   study:{axis:$("studyAxis").value,coord:Number($("studyCoord").value),active:state.studyPlane.active,scanSpan:state.scanSpan,aimMode:$("scanAimMode").value},
-  display:{mode:state.mode,t:state.t,speed:state.speed,scaleFactor:{...state.scaleFactor}}
+  display:{mode:state.mode,t:state.t,speed:state.speed,scaleFactor:{...state.scaleFactor},manualScale:{...state.manualScale}}
  };
 }
 function exportConfig(){
@@ -278,6 +278,7 @@ async function importConfig(file){
   state.mode=d.mode==="S"?"S":"E";state.t=num(d.t,state.t,0,1,"周期时刻");
   state.speed=[.25,.5,1].includes(Number(d.speed))?Number(d.speed):.5;
   if(d.scaleFactor)for(const m of ["E","S"])if(Number.isFinite(Number(d.scaleFactor[m]))&&Number(d.scaleFactor[m])>0)state.scaleFactor[m]=F.clamp(Number(d.scaleFactor[m]),1e-8,100);
+  if(d.manualScale)for(const m of ["E","S"])state.manualScale[m]=Number.isFinite(Number(d.manualScale[m]))&&Number(d.manualScale[m])>0?Number(d.manualScale[m]):null;
   state.savedOverview=null;state.scanResult=null;state.coherenceRatio=null;
   $("freq").value=state.freq;$("apX").value=state.apX;$("apY").value=state.apY;$("eta").value=state.eta;$("pointsPerWave").value=String(state.pointsPerWave);
   $("Lx").value=state.Lx;$("Ly").value=state.Ly;$("Lz").value=state.Lz;$("zMin").value=state.zMin;
@@ -318,17 +319,18 @@ function bind(){
  $("modeE").addEventListener("click",()=>setMode("E"));
  $("modeS").addEventListener("click",()=>setMode("S"));
  $("scaleLimit").addEventListener("input",e=>{
-  // Logarithmic control: 0 → 0.1%, 1000 → 100% of automatic maximum.
-  state.scaleFactor[state.mode]=Math.pow(10,3*(Number(e.target.value)/1000-1));
+  // Adjust an absolute display cap; at the far right, return to automatic scaling.
+  const position=Number(e.target.value),factor=Math.pow(10,3*(position/1000-1));
+  state.manualScale[state.mode]=position>=1000?null:autoScaleMax()*factor;
   recolorOnly();
  });
  $("scaleMax").addEventListener("change",e=>{
-  const value=Number(e.target.value),base=state.fixedScales?.[state.mode];
-  if(e.target.value.trim()===""||!Number.isFinite(value)||!(value>0)||!(base>0)){syncColorBar();return;}
-  state.scaleFactor[state.mode]=F.clamp(value/base,1e-8,100);
+  const value=Number(e.target.value);
+  if(e.target.value.trim()===""||!Number.isFinite(value)||!(value>0)){syncColorBar();return;}
+  state.manualScale[state.mode]=value;
   recolorOnly();
  });
- $("scaleAuto").addEventListener("click",()=>{state.scaleFactor[state.mode]=1;recolorOnly();});
+ $("scaleAuto").addEventListener("click",()=>{state.manualScale[state.mode]=null;recolorOnly();});
  $("play").addEventListener("click",()=>{state.playing=!state.playing;$("play").textContent=state.playing?"Ⅱ 暂停":"▶ 播放";lastTime=0;});
  $("reset").addEventListener("click",()=>{state.playing=false;state.t=0;$("play").textContent="▶ 播放";drawDynamic();});
  $("speed").addEventListener("change",()=>state.speed=Number($("speed").value));
@@ -434,25 +436,8 @@ function compute(){
   setTimeout(()=>{if(token===job)try{complete(F.compute(prm,state.n));}catch(e){$("status").textContent="计算错误";}},30);
  }
 }
-function fixedScales(data){
- let maxE=1e-15,maxS=1e-20;
- for(const axis of F.AXES){
-  const f=data.axes[axis].fields,len=data.n*data.n;
-  for(let i=0;i<len;i++){
-   const a=f.erx[i]**2+f.ery[i]**2+f.erz[i]**2;
-   const b=f.eix[i]**2+f.eiy[i]**2+f.eiz[i]**2;
-   const cross=f.erx[i]*f.eix[i]+f.ery[i]*f.eiy[i]+f.erz[i]*f.eiz[i];
-   const ee=(a+b+Math.sqrt((a-b)**2+4*cross*cross))*.5;
-   const h=f.hrx[i]**2+f.hry[i]**2+f.hrz[i]**2+f.hix[i]**2+f.hiy[i]**2+f.hiz[i]**2;
-   if(ee>maxE*maxE)maxE=Math.sqrt(ee);
-   const bs=Math.sqrt((a+b)*h)/1e4;
-   if(bs>maxS)maxS=bs;
-  }
- }
- return {E:maxE,S:maxS};
-}
 function complete(data,preview=false){
- state.data=data;state.rasters={};state.fixedScales=fixedScales(data);
+ state.data=data;state.rasters={};state.values=null;
  $("status").textContent=preview?"已显示预览 · 高清计算中":"计算完成";
  $("exportPNG").disabled=preview;$("exportCSV").disabled=preview;
  $("lambdaValue").textContent=fmt(data.lambda*1e3,2)+" mm";
@@ -519,8 +504,9 @@ function updateMaxPointData(){
  maxPointData={local,global};
  const unit=state.mode==="E"?"V/m":"W/cm²",quantity=state.mode==="E"?"|E|":"|S|";
  const xyz=q=>"x="+fmt(q.x,2)+", y="+fmt(q.y,2)+", z="+fmt(q.z,2);
- $("globalMaxText").textContent="三切片全局最大 "+quantity+"："+names[global.axis]+" 截面 · ("+xyz(global.point)+") m · "+sci(global.value)+" "+unit+" · t/T="+fmt(state.t,3);
- $("localMaxText").textContent="各截面局部最大："+local.map(q=>names[q.axis]+" "+sci(q.value)+" "+unit+" @ ("+xyz(q.point)+") m").join("；");
+ const globalEl=$("globalMaxText"),localEl=$("localMaxText");
+ if(globalEl)globalEl.textContent="三切片全局最大 "+quantity+"："+names[global.axis]+" 截面 · ("+xyz(global.point)+") m · "+sci(global.value)+" "+unit+" · t/T="+fmt(state.t,3);
+ if(localEl)localEl.textContent="各截面局部最大："+local.map(q=>names[q.axis]+" "+sci(q.value)+" "+unit+" @ ("+xyz(q.point)+") m").join("；");
 }
 function drawMaxPointMarker(ctx,axis,item,isGlobal){
  if(!item)return;
@@ -583,19 +569,24 @@ function drawSlice(axis,raster,scale,withMarkers=true,off){
  }
 }
 // Display-only color upper bound; this must never alter E/H, phase, Poynting values, or exports.
+function autoScaleMax(){
+ if(!state.values)return 1;
+ let max=0;
+ for(const axis of F.AXES)if(state.values[axis])max=Math.max(max,state.values[axis].max||0);
+ return Math.max(max,1e-30);
+}
 function displayMax(){
- const baseline=state.fixedScales?.[state.mode];
- if(!(baseline>0))return 1;
- return Math.max(1e-30,baseline*state.scaleFactor[state.mode]);
+ const manual=state.manualScale&&state.manualScale[state.mode];
+ return Number.isFinite(manual)&&manual>0?manual:autoScaleMax();
 }
 function syncColorBar(){
- if(!state.fixedScales)return;
- const ratio=state.scaleFactor[state.mode];
- const logPosition=1000*(1+Math.log10(F.clamp(ratio,.001,1))/3);
+ if(!state.values)return;
+ const automatic=autoScaleMax(),manual=state.manualScale[state.mode];
+ const ratio=manual>0?manual/automatic:1;
+ const logPosition=ratio>=1?1000:1000*(1+Math.log10(F.clamp(ratio,.001,1))/3);
  $("scaleLimit").value=String(Math.round(F.clamp(logPosition,0,1000)));
  if(document.activeElement!==$("scaleMax"))$("scaleMax").value=String(Number(displayMax().toPrecision(6)));
- $("scaleAuto").disabled=Math.abs(ratio-1)<1e-12;
- $("scaleLimit").setAttribute("aria-valuetext","显示上限 "+sci(displayMax()));
+ $("scaleAuto").disabled=!(manual>0);
 }
 function recolorOnly(){
  if(!state.data||!state.values)return;
