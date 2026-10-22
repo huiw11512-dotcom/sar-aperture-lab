@@ -168,8 +168,10 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
 }
 
 
-/* Current-time global and per-slice maximum markers */
+/* Cycle-maximum total electric-field readouts */
+.field-max-readout{display:flex;flex-direction:column;gap:3px;flex:0 1 335px;min-width:265px;margin:0 auto;padding:6px 10px;border:1px solid #d9e8ed;border-radius:8px;background:#f8fbfc}.field-max-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:12px;line-height:1.4;white-space:nowrap}.field-max-row span{color:#597183}.field-max-row strong{color:#087e91;font-family:Consolas,monospace;font-size:12px;font-variant-numeric:tabular-nums}
 .fig-tools{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
 .max-toggle{display:flex;align-items:center;gap:8px;margin:0;padding:8px 11px;border:1px solid #e0c4cc;border-radius:9px;background:#fff7f8;color:#9e2038;font-size:14px;font-weight:750;white-space:nowrap}
 .max-toggle input{width:17px;height:17px;margin:0;accent-color:#cf193e}
+@media(max-width:900px){.field-max-readout{order:1;flex:1 0 100%;margin:0}.fig-tools{order:2;width:100%;justify-content:space-between}}
 @media(max-width:600px){.fig-tools{align-items:flex-start}.max-toggle{font-size:13px}}
