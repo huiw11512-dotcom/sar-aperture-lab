@@ -278,6 +278,7 @@ async function importConfig(file){
   state.mode=d.mode==="S"?"S":"E";state.t=num(d.t,state.t,0,1,"周期时刻");
   state.speed=[.25,.5,1].includes(Number(d.speed))?Number(d.speed):.5;
   if(d.scaleFactor)for(const m of ["E","S"])if(Number.isFinite(Number(d.scaleFactor[m]))&&Number(d.scaleFactor[m])>0)state.scaleFactor[m]=F.clamp(Number(d.scaleFactor[m]),1e-8,100);
+  state.manualScale={E:null,S:null};
   if(d.manualScale)for(const m of ["E","S"])state.manualScale[m]=Number.isFinite(Number(d.manualScale[m]))&&Number(d.manualScale[m])>0?Number(d.manualScale[m]):null;
   state.savedOverview=null;state.scanResult=null;state.coherenceRatio=null;
   $("freq").value=state.freq;$("apX").value=state.apX;$("apY").value=state.apY;$("eta").value=state.eta;$("pointsPerWave").value=String(state.pointsPerWave);
