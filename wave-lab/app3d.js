@@ -79,17 +79,25 @@ function updateStudyPlaneTitle(){
  $("planeRangeLabel").textContent="当前"+names[axis]+"截面 "+(state.mode==="E"?"电场最小 / 最大":"功率通量最小 / 最大");
  $("scanFieldTitle").textContent=state.mode==="E"?"目标穿面瞬时电场 |E(t)|":"目标穿面瞬时功率通量 |S(t)|";
 }
+function maxTotalFieldOverCycle(a){
+ // E(t)=Er*cos(ωt)+Ei*sin(ωt). The maximum of |E(t)|² is the largest eigenvalue
+ // of the 2×2 Gram matrix of Er and Ei, giving an exact cycle maximum without time sampling.
+ const A=a.erx*a.erx+a.ery*a.ery+a.erz*a.erz;
+ const B=a.erx*a.eix+a.ery*a.eiy+a.erz*a.eiz;
+ const C=a.eix*a.eix+a.eiy*a.eiy+a.eiz*a.eiz;
+ return Math.sqrt(Math.max(0,.5*(A+C+Math.hypot(A-C,2*B))));
+}
 let targetCycleCache={key:"",Emax:NaN,Smax:NaN};
 function updateTargetCycleMaximum(prm){
  const key=JSON.stringify({freq:prm.freq,apX:prm.apX,apY:prm.apY,eta:prm.eta,target:prm.target,nodes:prm.nodes});
  if(targetCycleCache.key===key)return targetCycleCache;
  const phasor=F.fieldAt(prm,prm.target);
- let Emax=0,Smax=0;
- // Sample one complete RF period densely; t is normalized to cycles [0,1).
+ const Emax=maxTotalFieldOverCycle(phasor);
+ let Smax=0;
+ // Power-flux magnitude is retained as a dense one-cycle sample; Emax is analytic and time-independent.
  const samples=4096;
  for(let i=0;i<samples;i++){
   const value=F.instantaneous(phasor,i/samples);
-  if(value.E>Emax)Emax=value.E;
   if(value.S>Smax)Smax=value.S;
  }
  targetCycleCache={key,Emax,Smax};
@@ -101,6 +109,7 @@ function updateStudyReadouts(){
  const cycle=updateTargetCycleMaximum(prm);
  $("targetEStat").textContent=sci(inst.E);
  $("targetEMaxStat").textContent=sci(cycle.Emax);
+ const targetMaxEl=$("targetTotalEmax");if(targetMaxEl)targetMaxEl.textContent=sci(cycle.Emax)+" V/m";
  $("targetSStat").textContent=sci(inst.S);
  $("targetSMaxStat").textContent=sci(cycle.Smax);
  updateStudyPlaneTitle();
@@ -714,7 +723,7 @@ function plotUV(canvas,e){
  if(u<0||u>1||v<0||v>1)return null;
  return {u,v};
 }
-function hideLens(){hover=null;$("lens").classList.remove("show");$("lens").setAttribute("aria-hidden","true");}
+function hideLens(){hover=null;const el=$("hoverTotalEmax");if(el)el.textContent="悬停查看";$("lens").classList.remove("show");$("lens").setAttribute("aria-hidden","true");}
 function showLens(axis,e){
  if(!state.rasters[axis])return;
  const uv=plotUV($("plot"+axis.toUpperCase()),e);
@@ -730,11 +739,12 @@ function showLens(axis,e){
  const direct=F.instantaneous(field,state.t);
  const unit=state.mode==="E"?" V/m":" W/cm²";
  const current=state.mode==="E"?direct.E:direct.S;
- let cycleMax=0;
- for(let k=0;k<512;k++){
+ const totalCycleMax=maxTotalFieldOverCycle(field);
+ const hoverMaxEl=$("hoverTotalEmax");if(hoverMaxEl)hoverMaxEl.textContent=sci(totalCycleMax)+" V/m";
+ let cycleMax=state.mode==="E"?totalCycleMax:0;
+ if(state.mode==="S")for(let k=0;k<512;k++){
   const sample=F.instantaneous(field,k/512);
-  const value=state.mode==="E"?sample.E:sample.S;
-  if(value>cycleMax)cycleMax=value;
+  if(sample.S>cycleMax)cycleMax=sample.S;
  }
  $("lensReading").textContent="瞬时值："+sci(current)+unit;
  $("lensMaxReading").textContent="周期最大值："+sci(cycleMax)+unit;
