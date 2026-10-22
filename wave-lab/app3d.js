@@ -421,7 +421,7 @@ function compute(){
  $("status").textContent="计算 3 × "+state.n+"² …";
  try{
   if(typeof Worker==="undefined")throw Error("worker unavailable");
-  worker=new Worker("./worker3d.js");
+  worker=new Worker("./worker3d.js?v=20261022-zpol2");
   worker.onmessage=e=>{
    if(token!==job)return;
    const a=e.data;
