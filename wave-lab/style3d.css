@@ -166,3 +166,14 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
   background: #fff5f6;
   color: #a91532;
 }
+
+
+/* Current-time global and per-slice maximum markers */
+.fig-tools{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+.max-toggle{display:flex;align-items:center;gap:8px;margin:0;padding:8px 11px;border:1px solid #e0c4cc;border-radius:9px;background:#fff7f8;color:#9e2038;font-size:14px;font-weight:750;white-space:nowrap}
+.max-toggle input{width:17px;height:17px;margin:0;accent-color:#cf193e}
+.max-point-readout{display:flex;flex-direction:column;gap:4px;margin:0 0 13px;padding:10px 13px;border:1px solid #f0d6d9;border-left:4px solid #cf193e;border-radius:9px;background:#fffafb;line-height:1.55;overflow-wrap:anywhere}
+.max-global{font-size:15px;font-weight:800;color:#a91e37;font-variant-numeric:tabular-nums}
+.max-local{font-size:13px;font-weight:620;color:#3e5d70;font-variant-numeric:tabular-nums}
+@media(max-width:900px){.fig-tools{width:100%;justify-content:space-between}.max-point-readout{font-size:13px}.max-local{font-size:12px}}
+@media(max-width:600px){.fig-tools{align-items:flex-start}.max-toggle{font-size:13px}.max-global{font-size:14px}}
