@@ -1,5 +1,5 @@
 "use strict";
-importScripts("./physics3d.js");
+importScripts("./physics3d.js?v=20261022-zpol2");
 self.onmessage=function(event){
   try {
     const p=event.data.params,n=event.data.n;
