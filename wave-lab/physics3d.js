@@ -12,6 +12,9 @@
     let r=Math.hypot(nx,ny,nz);
     if(r<1e-8){ nx=0;ny=0;nz=1;r=1; }
     nx/=r;ny/=r;nz/=r;
+
+    // Keep the aperture coordinate frame unchanged so rectangular-aperture
+    // pattern orientation is independent of the selected polarization.
     let ux,uy,uz,vx,vy,vz;
     if(nz>-0.9999){
       const d=1+nz;
@@ -20,7 +23,19 @@
     }else{
       ux=1;uy=0;uz=0;vx=0;vy=-1;vz=0;
     }
-    return {nx,ny,nz,ux,uy,uz,vx,vy,vz};
+
+    // Default vertical polarization: project global +Z onto the plane
+    // transverse to the boresight. A Z-directed wave cannot have E parallel
+    // to Z, so use projected +X only for the near-vertical-boresight singularity.
+    let px=-nz*nx,py=-nz*ny,pz=1-nz*nz;
+    let pm=Math.hypot(px,py,pz);
+    if(pm<1e-8){
+      px=1-nx*nx;py=-nx*ny;pz=-nx*nz;
+      pm=Math.hypot(px,py,pz);
+    }
+    if(pm>1e-8){px/=pm;py/=pm;pz/=pm;}
+    else{px=1;py=0;pz=0;}
+    return {nx,ny,nz,ux,uy,uz,vx,vy,vz,px,py,pz};
   }
   function planePoint(p,axis,u,v){
     const cx=p.centerX||0,cy=p.centerY||0;
@@ -63,11 +78,14 @@
     const u=dx*f.ux+dy*f.uy+dz*f.uz, v=dx*f.vx+dy*f.vy+dz*f.vz;
     const pat=sinc(Math.PI*p.apX*u)*sinc(Math.PI*p.apY*v)*(1+dir)*0.5;
     const amp=Math.sqrt(2*Z0*s.power*pc.gain/(4*Math.PI*R*R))*pat;
-    const dot=f.ux*dx+f.uy*dy+f.uz*dz;
-    let ex=f.ux-dot*dx,ey=f.uy-dot*dy,ez=f.uz-dot*dz;
-    const pm=Math.hypot(ex,ey,ez);
-    if(pm<1e-8)return;
-    ex=amp*ex/pm;ey=amp*ey/pm;ez=amp*ez/pm;
+
+    // Far-field E is transverse to the observation ray. Start from the
+    // source's Z-polarization vector, then project it onto that transverse plane.
+    const dot=f.px*dx+f.py*dy+f.pz*dz;
+    let ex=f.px-dot*dx,ey=f.py-dot*dy,ez=f.pz-dot*dz;
+    const em=Math.hypot(ex,ey,ez);
+    if(em<1e-8)return;
+    ex=amp*ex/em;ey=amp*ey/em;ez=amp*ez/em;
     const hx=(dy*ez-dz*ey)/Z0,hy=(dz*ex-dx*ez)/Z0,hz=(dx*ey-dy*ex)/Z0;
     const phase=(pc.k*R+s.phase*Math.PI/180)%TWO,co=Math.cos(phase),si=Math.sin(phase);
     acc.erx+=ex*co;acc.eix+=ex*si;
