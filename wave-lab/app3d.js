@@ -9,7 +9,7 @@ const state={
  t:0,playing:false,speed:.5,mode:"E",data:null,rasters:{},scaleFactor:{E:1,S:1},tracePol:0,
  studyPlane:{axis:"x",coord:0,active:false},scanSpan:5,scanAimMode:"track",scanResult:null,coherenceRatio:null
 };
-let worker=null,job=0,timer=null,lastTime=0,lastPaint=0,hover=null,rendering=false;
+let worker=null,job=0,timer=null,lastTime=0,lastPaint=0,hover=null,rendering=false,maxPointData=null;
 const fmt=(v,d=2)=>Number(v).toFixed(d);
 const sci=v=>(Math.abs(v)>=.01&&Math.abs(v)<1000)?Number(v).toFixed(3):Number(v).toExponential(2);
 const escapeHTML=x=>String(x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -314,6 +314,7 @@ function bind(){
  $("count").addEventListener("change",()=>layoutNodes(Number($("count").value)));
  $("equalPhase").addEventListener("click",()=>{state.nodes.forEach(n=>n.phase=0);renderNodes();queue();});
  $("randomPhase").addEventListener("click",()=>{state.nodes.forEach(n=>n.phase=Math.round(Math.random()*360-180));renderNodes();queue();});
+ $("showMaxPoint").addEventListener("change",()=>recolorOnly());
  $("modeE").addEventListener("click",()=>setMode("E"));
  $("modeS").addEventListener("click",()=>setMode("S"));
  $("scaleLimit").addEventListener("input",e=>{
@@ -479,16 +480,16 @@ function makeValues(axis){
  // A 448-pixel plot needs no million-pixel repaints each animation frame.
  // Keep the original high-resolution field arrays for numeric export.
  const n=Math.min(sourceN,512),vals=new Float32Array(n*n),co=Math.cos(TWO*state.t),si=Math.sin(TWO*state.t);
- let max=0;
+ let max=0,maxIndex=0;
  for(let j=0;j<n;j++){
   const srcJ=Math.min(sourceN-1,Math.floor((j+.5)*sourceN/n));
   for(let i=0;i<n;i++){
    const srcI=Math.min(sourceN-1,Math.floor((i+.5)*sourceN/n));
-   const v=instantValue(f,srcJ*sourceN+srcI,co,si,state.mode);
-   vals[j*n+i]=v;if(v>max)max=v;
+   const v=instantValue(f,srcJ*sourceN+srcI,co,si,state.mode),idx=j*n+i;
+   vals[idx]=v;if(v>max){max=v;maxIndex=idx;}
   }
  }
- return {n,vals,max};
+ return {n,vals,max,maxIndex};
 }
 function rawRaster(vals,scale,n){
  const canvas=document.createElement("canvas");canvas.width=n;canvas.height=n;
@@ -500,6 +501,55 @@ function rawRaster(vals,scale,n){
  ctx.putImageData(img,0,0);return canvas;
 }
 const X0=87,Y0=38,SZ=448;
+function pointAtSample(axis,index,view,p){
+ const r=F.ranges(p,axis),ix=index%view.n,iy=Math.floor(index/view.n);
+ const point={x:p.cuts.x,y:p.cuts.y,z:p.cuts.z};
+ point[r.hName]=r.hMin+(ix+.5)/view.n*(r.hMax-r.hMin);
+ point[r.vName]=r.vMax-(iy+.5)/view.n*(r.vMax-r.vMin);
+ return point;
+}
+function updateMaxPointData(){
+ if(!state.values)return;
+ const p=params(),names={x:"YZ",y:"XZ",z:"XY"};
+ const local=F.AXES.map(axis=>{
+  const view=state.values[axis];
+  return {axis,value:view.max,index:view.maxIndex,point:pointAtSample(axis,view.maxIndex,view,p)};
+ });
+ const global=local.reduce((best,item)=>item.value>best.value?item:best,local[0]);
+ maxPointData={local,global};
+ const unit=state.mode==="E"?"V/m":"W/cm²",quantity=state.mode==="E"?"|E|":"|S|";
+ const xyz=q=>"x="+fmt(q.x,2)+", y="+fmt(q.y,2)+", z="+fmt(q.z,2);
+ $("globalMaxText").textContent="三切片全局最大 "+quantity+"："+names[global.axis]+" 截面 · ("+xyz(global.point)+") m · "+sci(global.value)+" "+unit+" · t/T="+fmt(state.t,3);
+ $("localMaxText").textContent="各截面局部最大："+local.map(q=>names[q.axis]+" "+sci(q.value)+" "+unit+" @ ("+xyz(q.point)+") m").join("；");
+}
+function drawMaxPointMarker(ctx,axis,item,isGlobal){
+ if(!item)return;
+ const pp=F.projectPoint(params(),axis,item.point);
+ if(pp.u<0||pp.u>1||pp.v<0||pp.v>1||pp.dist>1e-5)return;
+ const x=X0+pp.u*SZ,y=Y0+pp.v*SZ;
+ ctx.save();
+ if(isGlobal){
+  ctx.beginPath();ctx.arc(x,y,13,0,TWO);ctx.fillStyle="#fff";ctx.fill();
+  ctx.beginPath();ctx.arc(x,y,9,0,TWO);ctx.strokeStyle="#cf193e";ctx.lineWidth=3.5;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x-16,y);ctx.lineTo(x-10,y);ctx.moveTo(x+10,y);ctx.lineTo(x+16,y);ctx.moveTo(x,y-16);ctx.lineTo(x,y-10);ctx.moveTo(x,y+10);ctx.lineTo(x,y+16);
+  ctx.strokeStyle="#cf193e";ctx.lineWidth=2.5;ctx.stroke();
+ }else{
+  ctx.beginPath();ctx.arc(x,y,10,0,TWO);ctx.fillStyle="#fff";ctx.fill();
+  ctx.beginPath();ctx.arc(x,y,7,0,TWO);ctx.strokeStyle="#087f8d";ctx.lineWidth=3;ctx.stroke();
+  ctx.beginPath();ctx.arc(x,y,2.5,0,TWO);ctx.fillStyle="#087f8d";ctx.fill();
+ }
+ const label=isGlobal?"全局 MAX":"截面 MAX";
+ ctx.font=isGlobal?"bold 15px Arial":"bold 14px Arial";
+ const tw=ctx.measureText(label).width;
+ let lx=x+15,ly=y-13;
+ if(lx+tw+12>X0+SZ-2)lx=x-tw-21;
+ if(ly-10<Y0+2)ly=y+24;
+ if(ly+10>Y0+SZ-2)ly=y-24;
+ ctx.fillStyle=isGlobal?"#b81735":"#087582";
+ ctx.fillRect(lx,ly-10,tw+12,20);
+ ctx.fillStyle="#fff";ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillText(label,lx+6,ly);
+ ctx.restore();
+}
 function drawSlice(axis,raster,scale,withMarkers=true,off){
  const canvas=off||$("plot"+axis.toUpperCase()),ctx=canvas.getContext("2d");
  const w=canvas.width,h=canvas.height;
@@ -526,7 +576,11 @@ function drawSlice(axis,raster,scale,withMarkers=true,off){
   ctx.beginPath();ctx.moveTo(x,y-rad);ctx.lineTo(x+rad,y);ctx.lineTo(x,y+rad);ctx.lineTo(x-rad,y);ctx.closePath();ctx.fill();ctx.stroke();
   ctx.font="bold 18px Arial";ctx.textAlign="left";ctx.fillText("T",x+10,y-9);ctx.restore();
  }
-
+ if($("showMaxPoint")?.checked&&maxPointData){
+  const global=maxPointData.global;
+  if(global.axis===axis)drawMaxPointMarker(ctx,axis,global,true);
+  else drawMaxPointMarker(ctx,axis,maxPointData.local.find(q=>q.axis===axis),false);
+ }
 }
 // Display-only color upper bound; this must never alter E/H, phase, Poynting values, or exports.
 function displayMax(){
@@ -545,6 +599,7 @@ function syncColorBar(){
 }
 function recolorOnly(){
  if(!state.data||!state.values)return;
+ updateMaxPointData();
  const cap=displayMax(),maps={};
  for(const axis of F.AXES){
   const v=state.values[axis];
