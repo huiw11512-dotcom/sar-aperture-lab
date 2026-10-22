@@ -26,7 +26,7 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
 .workbar .timeline{flex:1;min-width:220px}.timeline .value{font-weight:750;color:#1d778d;font-family:Consolas,monospace;float:right;font-size:14px}
 .select-inline{width:auto;min-width:90px;height:40px}.workbar .speed{width:100px}
 .figure{padding:20px 20px 22px;margin-bottom:17px}.fig-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:13px}
-.fig-head h2{font-size:19px;font-weight:770;margin:0}.mode{display:inline-flex;padding:4px;border:1px solid #dce7eb;border-radius:10px;background:#f7f9fa;gap:4px}
+.fig-head h2{font-size:19px;font-weight:770;margin:0}.field-max-readout{display:flex;flex-direction:column;gap:3px;flex:0 1 335px;min-width:265px;margin:0 auto;padding:6px 10px;border:1px solid #d9e8ed;border-radius:8px;background:#f8fbfc}.field-max-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:12px;line-height:1.4;white-space:nowrap}.field-max-row span{color:#597183}.field-max-row strong{color:#087e91;font-family:Consolas,monospace;font-size:12px;font-variant-numeric:tabular-nums}.mode{display:inline-flex;padding:4px;border:1px solid #dce7eb;border-radius:10px;background:#f7f9fa;gap:4px}
 .mode button{border:0;background:transparent;color:#5a7383;padding:9px 14px;font-size:14px;border-radius:7px}.mode button.selected{background:#fff;color:#087e91;box-shadow:0 2px 10px rgba(40,75,87,.11)}
 .figure-layout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.slice{min-width:0}.slice h3{display:flex;gap:9px;align-items:center;justify-content:center;font-size:15px;margin:5px 0 7px;font-weight:760}.slice h3 span{font-weight:600;font-size:13px;color:var(--muted)}
 .slice canvas{display:block;width:100%;height:auto;aspect-ratio:580/675;cursor:crosshair}
@@ -137,7 +137,7 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
 .max-point-readout{display:flex;flex-direction:column;gap:4px;margin:0 0 13px;padding:10px 13px;border:1px solid #f0d6d9;border-left:4px solid #cf193e;border-radius:9px;background:#fffafb;line-height:1.55;overflow-wrap:anywhere}
 .max-global{font-size:15px;font-weight:800;color:#a91e37;font-variant-numeric:tabular-nums}
 .max-local{font-size:13px;font-weight:620;color:#3e5d70;font-variant-numeric:tabular-nums}
-@media(max-width:900px){.fig-tools{width:100%;justify-content:space-between}}
+@media(max-width:900px){.field-max-readout{order:1;flex:1 0 100%;margin:0}.fig-tools{order:2;width:100%;justify-content:space-between}}
 @media(max-width:600px){.fig-tools{align-items:flex-start}.max-toggle{font-size:13px}}
 
 </style></head>
@@ -189,7 +189,7 @@ label{display:block;font-size:13px;color:#597183;font-weight:650;margin-bottom:6
    <div class="timeline"><label for="time">周期时刻 <span id="timeValue" class="value">0.000 T</span></label><input type="range" id="time" min="0" max="1" step=".001" value="0"></div>
    <div class="speed"><label for="speed">播放速度</label><select id="speed"><option value=".25">慢</option><option value=".5" selected>中</option><option value="1">快</option></select></div>
  </div>
- <section class="figure card"><div class="fig-head"><h2>空间场分布</h2><div class="fig-tools">
+ <section class="figure card"><div class="fig-head"><h2>空间场分布</h2><div class="field-max-readout" aria-live="polite" aria-label="周期内最大总场强"><div class="field-max-row"><span>悬浮点周期最大总场强</span><strong id="hoverTotalEmax">悬停查看</strong></div><div class="field-max-row"><span>目标点周期最大总场强</span><strong id="targetTotalEmax">—</strong></div></div><div class="fig-tools">
     <label class="max-toggle" for="showMaxPoint"><input id="showMaxPoint" type="checkbox" checked>显示最大值点</label>
     <div class="mode"><button id="modeE" class="selected">瞬时电场 |E|</button><button id="modeS">瞬时功率通量 |S|</button></div>
   </div></div>
@@ -585,17 +585,25 @@ function updateStudyPlaneTitle(){
  $("planeRangeLabel").textContent="当前"+names[axis]+"截面 "+(state.mode==="E"?"电场最小 / 最大":"功率通量最小 / 最大");
  $("scanFieldTitle").textContent=state.mode==="E"?"目标穿面瞬时电场 |E(t)|":"目标穿面瞬时功率通量 |S(t)|";
 }
+function maxTotalFieldOverCycle(a){
+ // E(t)=Er*cos(ωt)+Ei*sin(ωt). The maximum of |E(t)|² is the largest eigenvalue
+ // of the 2×2 Gram matrix of Er and Ei, giving an exact cycle maximum without time sampling.
+ const A=a.erx*a.erx+a.ery*a.ery+a.erz*a.erz;
+ const B=a.erx*a.eix+a.ery*a.eiy+a.erz*a.eiz;
+ const C=a.eix*a.eix+a.eiy*a.eiy+a.eiz*a.eiz;
+ return Math.sqrt(Math.max(0,.5*(A+C+Math.hypot(A-C,2*B))));
+}
 let targetCycleCache={key:"",Emax:NaN,Smax:NaN};
 function updateTargetCycleMaximum(prm){
  const key=JSON.stringify({freq:prm.freq,apX:prm.apX,apY:prm.apY,eta:prm.eta,target:prm.target,nodes:prm.nodes});
  if(targetCycleCache.key===key)return targetCycleCache;
  const phasor=F.fieldAt(prm,prm.target);
- let Emax=0,Smax=0;
- // Sample one complete RF period densely; t is normalized to cycles [0,1).
+ const Emax=maxTotalFieldOverCycle(phasor);
+ let Smax=0;
+ // Power-flux magnitude is retained as a dense one-cycle sample; Emax is analytic and time-independent.
  const samples=4096;
  for(let i=0;i<samples;i++){
   const value=F.instantaneous(phasor,i/samples);
-  if(value.E>Emax)Emax=value.E;
   if(value.S>Smax)Smax=value.S;
  }
  targetCycleCache={key,Emax,Smax};
@@ -607,6 +615,7 @@ function updateStudyReadouts(){
  const cycle=updateTargetCycleMaximum(prm);
  $("targetEStat").textContent=sci(inst.E);
  $("targetEMaxStat").textContent=sci(cycle.Emax);
+ $("targetTotalEmax").textContent=sci(cycle.Emax)+" V/m";
  $("targetSStat").textContent=sci(inst.S);
  $("targetSMaxStat").textContent=sci(cycle.Smax);
  updateStudyPlaneTitle();
@@ -1217,7 +1226,7 @@ function plotUV(canvas,e){
  if(u<0||u>1||v<0||v>1)return null;
  return {u,v};
 }
-function hideLens(){hover=null;$("lens").classList.remove("show");$("lens").setAttribute("aria-hidden","true");}
+function hideLens(){hover=null;$("lens").classList.remove("show");$("lens").setAttribute("aria-hidden","true");const el=$("hoverTotalEmax");if(el)el.textContent="悬停查看";}
 function showLens(axis,e){
  if(!state.rasters[axis])return;
  const uv=plotUV($("plot"+axis.toUpperCase()),e);
@@ -1233,11 +1242,12 @@ function showLens(axis,e){
  const direct=F.instantaneous(field,state.t);
  const unit=state.mode==="E"?" V/m":" W/cm²";
  const current=state.mode==="E"?direct.E:direct.S;
- let cycleMax=0;
- for(let k=0;k<512;k++){
+ const totalCycleMax=maxTotalFieldOverCycle(field);
+ $("hoverTotalEmax").textContent=sci(totalCycleMax)+" V/m";
+ let cycleMax=state.mode==="E"?totalCycleMax:0;
+ if(state.mode==="S")for(let k=0;k<512;k++){
   const sample=F.instantaneous(field,k/512);
-  const value=state.mode==="E"?sample.E:sample.S;
-  if(value>cycleMax)cycleMax=value;
+  if(sample.S>cycleMax)cycleMax=sample.S;
  }
  $("lensReading").textContent="瞬时值："+sci(current)+unit;
  $("lensMaxReading").textContent="周期最大值："+sci(cycleMax)+unit;
